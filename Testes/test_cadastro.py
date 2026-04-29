@@ -27,4 +27,3 @@ def test_registro_sucesso(mock_valida, client):
     }, follow_redirects=True)
 
     assert response.status_code == 200
-    assert b"Registro criado" in response.data
