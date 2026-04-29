@@ -9,16 +9,16 @@ import secrets
 from datetime import datetime, timedelta
 from services import autenticar_usuario, valida_informacoes
 
-
-db = get_db()
 auth_bp = Blueprint('login',__name__)
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    db = get_db()
+    
     if request.method == "POST":
         email = request.form.get('email', '').strip().lower()
         pwd = request.form.get('pwd', '')
-
+ 
         if not email or not pwd:
             flash("Preencha o email e a senha.", "error")
             return render_template('login.html')
@@ -40,6 +40,8 @@ def login():
 
 @auth_bp.route('/registro', methods=['POST'])
 def registro():
+    db = get_db()
+    
     render_template('registro.html')
     if request.method == "POST":
         nome = request.form.get('nome', '').strip()
@@ -67,6 +69,8 @@ def registro():
 
 @auth_bp.route('/redefinir-senha', methods=['POST'])
 def alterar_senha():
+    db = get_db()
+    
     if request.method == 'POST':
         email  = request.form.get('email', '').strip().lower()
         if not email:
