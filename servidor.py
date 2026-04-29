@@ -1,3 +1,4 @@
+<<<<<<< Sistema-de-login
 from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages
 from dotenv import load_dotenv
 from banco import get_db
@@ -57,3 +58,11 @@ def root():
 
 if __name__ == '__main__':
     app.run(debug=True)
+=======
+from flask import Flask
+
+app = Flask(__name__)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+>>>>>>> main
