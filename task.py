@@ -5,7 +5,7 @@ from flask_mailman import EmailMessage,Mail
 from servidor import criar_app
 from celery_app import celery
 from dotenv import load_dotenv
-
+ 
 
 load_dotenv()
 app = Celery(main='tasks',

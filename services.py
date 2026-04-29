@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta
 
 
-
+ 
 def autenticar_usuario(db, email, pwd):
     try:
         email = validate_email(email).email
