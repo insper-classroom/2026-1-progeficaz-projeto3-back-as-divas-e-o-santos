@@ -54,3 +54,30 @@ def test_registro_envia_email_2fatores(mock_valida, mock_email_delay, client):
 
     # verifica que o email foi enviado
     mock_email_delay.assert_called_once()
+
+
+@patch("task.enviar_email.delay")
+@patch("routs.auth.valida_informacoes")
+def test_registro_falha_nao_envia_email(mock_valida, mock_email_delay, client):
+    # Erro na validação 
+    mock_valida.return_value = (None, "Erro de validação")
+
+    response = client.post("/auth/registro", data={
+        "nome": "João",
+        "email": "joao@al.insper.edu.br",
+        "pwd": "12345678"
+    })
+
+    assert response.status_code == 400
+
+    # não deve enviar de email
+    mock_email_delay.assert_not_called()
+
+def test_registro_falha_campos_vazios(client):
+    response = client.post("/auth/registro", data={
+        "nome": "",
+        "email": "",
+        "pwd": ""
+    })
+
+    assert response.status_code == 400
