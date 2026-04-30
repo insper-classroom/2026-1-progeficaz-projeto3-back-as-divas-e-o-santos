@@ -39,6 +39,7 @@ def criar_app():
 
         pass
 
+
     @app.context_processor
     def inject_flashes():
 

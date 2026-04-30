@@ -26,9 +26,10 @@ def valida_informacoes(db,nome,email,pwd):
         email = v.email
     except EmailNotValidError:
         return None, 'Email inválido' 
-     
+    
+    dominios_validos = {"al.insper.edu.br", "insper.edu.br"}
     dominio = email.split("@")[-1]
-    if dominio != "al.insper.edu.br":
+    if dominio not in dominios_validos:
         return None, "Use um email institucional da faculdade."
 
     if len(pwd) < 8:
