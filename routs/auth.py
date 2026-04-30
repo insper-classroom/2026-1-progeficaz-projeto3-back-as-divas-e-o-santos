@@ -7,7 +7,7 @@ from flask_mailman import EmailMessage, Mail
 import os
 import secrets
 from datetime import datetime, timedelta
-from services import autenticar_usuario, valida_informacoes
+from services.services_auth import autenticar_usuario, valida_informacoes
 
 auth_bp = Blueprint('login',__name__)
 

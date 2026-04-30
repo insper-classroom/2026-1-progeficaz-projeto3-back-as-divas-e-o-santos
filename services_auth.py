@@ -53,7 +53,7 @@ def valida_informacoes(db,nome,email,pwd):
 
 
     try:
-        from task import enviar_email
+        from tasks.tasks import enviar_email
         enviar_email.delay(email, codigo)
     except Exception:
         print("Falha ao agendar enviar_email; verifique worker. Continuando...")
@@ -68,7 +68,7 @@ def alterar_senha(db,email):
         return None ,'Este email não está cadastrado.'
     else:
         try:
-            from task import alterar_senha as task_alterar_senha
+            from tasks.tasks import alterar_senha as task_alterar_senha
             task_alterar_senha.delay(email)
         except Exception:
             print("Falha ao agendar alterar_senha task; verifique worker.")

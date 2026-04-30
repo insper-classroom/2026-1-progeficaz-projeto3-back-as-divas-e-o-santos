@@ -22,6 +22,9 @@ Através da aplicação, o usuário pode:
 * MongoDB (Atlas)
 * REST API
 * JSON
+* Celery
+* Remis
+
 
 ---
 
@@ -43,3 +46,8 @@ Você pode acessá-lo pelo link abaixo:
 * Maria Eduarda dos Santos
 * Judite Mello
 * Rafael Santos
+
+
+## COMANDO PARA RODAR O CELERY DENTRO DA MAQUINA
+
+* celery -A celery_app.celery worker --loglevel=info --pool=solo
