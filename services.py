@@ -3,7 +3,7 @@ from email_validator import validate_email, EmailNotValidError
 from flask import session
 import secrets
 from datetime import datetime, timedelta
-from task import alterar_senha as task_alterar_senha
+from tasks.tasks import alterar_senha as task_alterar_senha
 
 
 
@@ -56,7 +56,7 @@ def valida_informacoes(db,nome,email,pwd):
 
 
     try:
-        from task import enviar_email
+        from tasks.tasks import enviar_email
         enviar_email.delay(email, codigo)
     except Exception:
         print("Falha ao agendar enviar_email; verifique worker. Continuando...")

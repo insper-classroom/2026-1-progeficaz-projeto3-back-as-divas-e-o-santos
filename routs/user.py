@@ -1,24 +1,36 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages, Blueprint, jsonify
-from dotenv import load_dotenv
+from flask import Blueprint, jsonify
 from banco import get_db
-from werkzeug.security import generate_password_hash, check_password_hash
-from email_validator import validate_email, EmailNotValidError
-from flask_mailman import EmailMessage, Mail
-import os
-import secrets
-from datetime import datetime, timedelta
-from services import autenticar_usuario, valida_informacoes
+from bson.objectid import ObjectId
 
-auth_bp = Blueprint('login',__name__)
+user_bp = Blueprint('/',__name__)
+sugestao_bp = Blueprint('sugestao', __name__)
 
-@auth_bp.route('/produto/<produto_id>', methods=['GET'])
+@user_bp.route('', methods=['GET'])
+def homepage():
+    db = get_db()
+
+    produtos = list(db.produtos.find())
+
+    for p in produtos:
+        p["_id"] = str(p["_id"])
+
+    return jsonify(produtos)
+
+
+@user_bp.route('produto/<produto_id>', methods=['GET'])
 def produto(produto_id):
     db = get_db()
-    if produto_id.startswith('-'):
+
+    try:
+        obj_id = ObjectId(produto_id)
+    except:
         return {"erro": "Produto não encontrado"}, 404
 
-    produto = db.produtos.find_one({"_id": produto_id})
-    if not produto:
-        return {"erro": "Produto não encontrado", "produto": None}, 404
+    produto = db.produtos.find_one({"_id": obj_id})
 
-    return produto
+    if not produto:
+        return {"erro": "Produto não encontrado"}, 404
+
+    produto["_id"] = str(produto["_id"])
+
+    return jsonify(produto)

@@ -2,7 +2,7 @@ from banco import get_db
 from services_pasta.user import encontra_emails_admin
 
 def processa_sugestao(data):
-    from task import enviar_email_sugestao
+    from tasks.tasks import enviar_email_sugestao
     db = get_db()
     message = data.get("message")
 
