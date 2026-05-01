@@ -1,6 +1,6 @@
-from celery_app import Celery
+from celery import Celery
 import os
- 
+
 def make_celery():
     broker = os.getenv('CELERY_BROKER', 'pyamqp://guest:guest@localhost//')
     backend = os.getenv('CELERY_BACKEND', 'db+sqlite:///celery.sqlite')

@@ -1,12 +1,15 @@
+import os
 from pymongo import MongoClient
 from flask import current_app, g
 
-def get_db(): 
+def get_db():
     if 'mongo' not in g:
-        uri = current_app.config.get("MONGO_URI", "mongodb+srv://admin:12345@cluster0.i9nj5jh.mongodb.net/")
+        uri = os.environ.get("MONGO_URI")
+        dbname = os.environ.get("MONGO_DBNAME", "banco_lojinha")
+
         client = MongoClient(uri)
 
         g.mongo = client
-        g.db = client[current_app.config.get("MONGO_DBNAME", "meu_banco")]
+        g.db = client[dbname]
 
     return g.db
