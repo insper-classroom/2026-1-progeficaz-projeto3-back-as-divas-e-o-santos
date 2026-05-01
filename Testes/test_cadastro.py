@@ -1,10 +1,14 @@
 from urllib import response
-from servidor import *
+import os
 from unittest.mock import patch, MagicMock
 from routs.auth import *
 import pytest
 import json
 import requests
+
+os.environ.setdefault('SECRET_KEY', 'test_secret_key')
+
+from servidor import app
 
 @pytest.fixture
 def client():

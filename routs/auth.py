@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages, Blueprint
+from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages, Blueprint, jsonify
 from dotenv import load_dotenv
 from banco import get_db
 from werkzeug.security import generate_password_hash, check_password_hash

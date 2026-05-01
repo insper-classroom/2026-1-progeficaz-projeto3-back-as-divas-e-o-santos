@@ -1,9 +1,7 @@
-from celery_app import Celery
+from celery import Celery
 from random import randint
 from flask import render_template
-from flask_mailman import EmailMessage,Mail
-from servidor import criar_app
-from celery_app import celery
+from flask_mailman import EmailMessage
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -45,7 +43,7 @@ def enviar_email(to_email, codigo):
 @celery.task
 def alterar_senha(email):
     try:
-        with flask_app.app_context():
+        with get_flask_app().app_context():
             html_body = render_template('email/alterar_senha.html')
 
             msg = EmailMessage(
