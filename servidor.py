@@ -8,9 +8,10 @@ import os
 import secrets
 from datetime import datetime, timedelta
 from routs.auth import auth_bp
-from routs.user import sugestao_bp
+from routs.user import sugestao_bp, user_bp
 
 load_dotenv() 
+
 
 def criar_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -57,11 +58,8 @@ def criar_app():
 
 app = criar_app()
 
-@app.route('/')
-def root():
-    if 'user_id' in session:
-        return redirect('/')
-    return redirect('/auth/login')
+app.register_blueprint(user_bp)
+
 
 if __name__ == '__main__':
     app.run(debug=True) 
