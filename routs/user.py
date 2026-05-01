@@ -9,13 +9,16 @@ sugestao_bp = Blueprint('sugestao', __name__)
 def homepage():
     db = get_db()
 
-    produtos = list(db.produtos.find())
+    try:
+        produtos = list(db.produtos.find())
 
-    for p in produtos:
-        p["_id"] = str(p["_id"])
+        for p in produtos:
+            p["_id"] = str(p["_id"])
 
-    return jsonify(produtos)
+        return jsonify(produtos)
 
+    except Exception:
+        return jsonify({"erro": "Erro ao buscar produtos"}), 500
 
 @user_bp.route('/produto/<produto_id>', methods=['GET'])
 def produto(produto_id):

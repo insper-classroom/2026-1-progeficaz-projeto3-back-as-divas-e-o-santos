@@ -129,3 +129,16 @@ def test_get_produtos_sucesso(mock_get_db, client):
     assert len(data) == 2
     assert data[0]["titulo"] == "Camiseta"
     assert data[1]["titulo"] == "Calça"
+    
+    
+@patch("routs.user.get_db")
+def test_get_produtos_erro_banco_de_dados(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.produtos.find.side_effect = Exception("Erro no banco")
+
+    response = client.get("/")
+
+    assert response.status_code == 500
+    assert response.get_json() == {"erro": "Erro ao buscar produtos"}
