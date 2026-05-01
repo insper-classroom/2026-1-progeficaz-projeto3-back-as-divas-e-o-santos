@@ -2,10 +2,10 @@ from flask import Blueprint, jsonify
 from banco import get_db
 from bson.objectid import ObjectId
 
-user_bp = Blueprint('/',__name__)
+user_bp = Blueprint('user', __name__)
 sugestao_bp = Blueprint('sugestao', __name__)
 
-@user_bp.route('', methods=['GET'])
+@user_bp.route('/', methods=['GET'])
 def homepage():
     db = get_db()
 
@@ -17,7 +17,7 @@ def homepage():
     return jsonify(produtos)
 
 
-@user_bp.route('produto/<produto_id>', methods=['GET'])
+@user_bp.route('/produto/<produto_id>', methods=['GET'])
 def produto(produto_id):
     db = get_db()
 
