@@ -3,6 +3,7 @@ from random import randint
 from flask import render_template
 from flask_mailman import EmailMessage
 from dotenv import load_dotenv
+from servidor import *
 
 load_dotenv()
 celery = Celery(
