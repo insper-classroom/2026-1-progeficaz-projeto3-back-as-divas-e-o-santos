@@ -1,43 +1,79 @@
-from random import randint
 from flask import render_template
-from flask_mailman import EmailMessage,Mail
-from servidor import criar_app
-from celery import shared_task
+from flask_mailman import EmailMessage, Mail
+from celery import Celery
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 import os
 
-
 load_dotenv()
-flask_app = criar_app()
-mail = Mail()
-mail.init_app(flask_app)
 
-@shared_task
-def enviar_email(to_email,codigo):
+celery = Celery(
+    'tasks',
+    broker='pyamqp://guest@localhost//',
+    backend='db+sqlite:///celery.sqlite'
+)
+
+mail = Mail()
+
+
+# 🔥 cria app só quando precisar (lazy)
+def get_app():
+    from servidor import criar_app
+    app = criar_app()
+    mail.init_app(app)
+    return app
+
+
+@celery.task
+def enviar_email(to_email, codigo):
     try:
-        with flask_app.app_context():
-            html_body = render_template('email/verificacao.html',codigo=codigo)
+        app = get_app()
+        with app.app_context():
+            html_body = render_template('email/verificacao.html', codigo=codigo)
 
             msg = EmailMessage(
-            subject="Bem-vindo!",
-            body="Seu cliente de e-mail não suporta HTML.",
-            to=[to_email]
-        )
+                subject="Bem-vindo!",
+                body="Seu cliente de e-mail não suporta HTML.",
+                to=[to_email]
+            )
 
             msg.content_subtype = "html"
             msg.body = html_body
-
             msg.send()
-            print(f'email enviado para {to_email}')
-    except Exception as e:
-          print('erro ao envia o email',e)
-          raise
-    
 
-@shared_task
+            print(f'email enviado para {to_email}')
+
+    except Exception as e:
+        print('erro ao enviar email', e)
+        raise
+
+
+@celery.task
+def alterar_senha(email):
+    try:
+        app = get_app()
+        with app.app_context():
+            html_body = render_template('email/alterar_senha.html')
+
+            msg = EmailMessage(
+                subject="Troca de senha",
+                body="Seu cliente de e-mail não suporta HTML.",
+                to=[email]
+            )
+
+            msg.content_subtype = "html"
+            msg.body = html_body
+            msg.send()
+
+            print(f'email enviado para {email}')
+
+    except Exception as e:
+        print('erro ao enviar email', e)
+        raise
+
+
+@celery.task
 def verificar_reservas():
     print("rodando verificação...")
 
@@ -47,36 +83,24 @@ def verificar_reservas():
         db = client[os.getenv("MONGO_DB_NAME")]
 
         agora = datetime.utcnow()
-
-        hoje_00 = agora.replace(hour=0, minute=0, second=0, microsecond=0)
-        inicio = hoje_00 + timedelta(days=1)
+        inicio = (agora.replace(hour=0, minute=0, second=0, microsecond=0)
+                  + timedelta(days=1))
         fim = inicio + timedelta(days=1)
 
         reservas = db.reservas.find({
-            "data_retirada": {
-                "$gte": inicio,
-                "$lt": fim
-            },
+            "data_retirada": {"$gte": inicio, "$lt": fim},
             "status": "ativa",
             "notificado": False
         })
 
         for r in reservas:
             user = db.users.find_one({"_id": r["user_id"]})
-            if not user:
-                continue
-
-            if not user.get("notificar_email"):
-                continue
-
             produto = db.produtos.find_one({"_id": r["produto_id"]})
-            if not produto:
+
+            if not user or not produto:
                 continue
 
-            enviar_email.delay(
-                user["email"],
-                produto["nome"]
-            )
+            enviar_email.delay(user["email"], produto["nome"])
 
             db.reservas.update_one(
                 {"_id": r["_id"]},

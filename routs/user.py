@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from services import autenticar_usuario, valida_informacoes
 
 auth_bp = Blueprint('login',__name__)
+sugestao_bp = Blueprint('sugestao', __name__)
 
 @auth_bp.route('/produto/<produto_id>', methods=['GET'])
 def produto(produto_id):
