@@ -57,3 +57,25 @@ def alterar_senha(email):
     except Exception as e:
           print('erro ao envia o email',e)
           raise
+    
+@app.task
+def enviar_email_sugestao(message, destinatarios):
+    try:
+        with flask_app.app_context():
+            from flask import current_app
+            from flask_mailman import EmailMessage
+
+            body = f"Nova sugestão:\n\n{message}"
+
+            msg = EmailMessage(
+                subject="Sugestão recebida",
+                body=body,
+                to=destinatarios
+            )
+
+            msg.send()
+            print(f"Sugestão enviada para {destinatarios}")
+
+    except Exception as e:
+        print("Erro ao enviar sugestão:", e)
+        raise
