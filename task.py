@@ -44,7 +44,7 @@ def enviar_email(to_email, codigo):
 @celery.task
 def alterar_senha(email):
     try:
-        with get_flask_app().app_context():
+        with flask_app().app_context():
             html_body = render_template('email/alterar_senha.html')
 
             msg = EmailMessage(
