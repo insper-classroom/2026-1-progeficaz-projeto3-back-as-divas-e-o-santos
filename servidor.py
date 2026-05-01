@@ -60,7 +60,7 @@ app = criar_app()
 @app.route('/')
 def root():
     if 'user_id' in session:
-        return redirect('/home')
+        return redirect('/')
     return redirect('/auth/login')
 
 if __name__ == '__main__':
