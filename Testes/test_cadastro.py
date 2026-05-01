@@ -1,17 +1,20 @@
 from urllib import response
-from servidor import *
+import os
 from unittest.mock import patch, MagicMock
 from routs.auth import *
 import pytest
 import json
 import requests
 
+os.environ.setdefault('SECRET_KEY', 'test_secret_key')
+
+from servidor import app
+
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
     with app.test_client() as test_client:
         yield test_client
-        
 
 @patch("routs.auth.valida_informacoes")
 def test_registro_sucesso(mock_valida, client):
@@ -24,6 +27,8 @@ def test_registro_sucesso(mock_valida, client):
         "nome": "João",
         "email": "joao@al.insper.edu.br",
         "pwd": "12345678"
-    }, follow_redirects=True)
+    }, follow_redirects=False)
 
-    assert response.status_code == 200
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/auth/login")
+

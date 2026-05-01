@@ -1,6 +1,6 @@
 from urllib import response
 from servidor import app
-from services import valida_informacoes
+from services import valida_informacoes, alterar_senha
 from unittest.mock import patch, MagicMock
 import pytest   
 import json
@@ -11,6 +11,7 @@ def mock_db():
     #Simulação do banco de dados no MongoDB
     db = MagicMock()
     return db
+
 
 def test_email_al_insper_valido(mock_db):
      #Email @al.insper.edu.br deve ser aceito   
@@ -78,3 +79,16 @@ def test_usuario_ja_cadastrado(mock_db):
 
     assert result is None
     assert erro == "Usuário já cadastrado."
+
+
+def test_alterar_senha_email_inexistente(mock_db):
+    """Usuário já existente no banco deve ser rejeitado"""
+    mock_db.users.find_one.return_value = None
+
+    result, erro = alterar_senha(
+        mock_db, "inexistente@al.insper.edu.br"
+    )
+
+    assert result is None
+    assert erro == "Usuário já cadastrado."
+

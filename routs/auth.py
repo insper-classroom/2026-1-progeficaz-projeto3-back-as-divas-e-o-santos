@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages, Blueprint
+from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages, Blueprint, jsonify
 from dotenv import load_dotenv
 from banco import get_db
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -42,7 +42,6 @@ def login():
 def registro():
     db = get_db()
     
-    render_template('registro.html')
     if request.method == "POST":
         nome = request.form.get('nome', '').strip()
         email = request.form.get('email', '').strip().lower()
@@ -60,14 +59,12 @@ def registro():
         session.clear() 
         session['id_verificacao'] = str(user.inserted_id)
 
-
-
         flash('Registro criado. Verifique seu email para confirmar.', "success")
         return redirect('/auth/login')  
     return render_template('registro.html')
 
 
-@auth_bp.route('/redefinir-senha', methods=['POST'])
+@auth_bp.route('/redefinir-senha', methods=['GET', 'POST'])
 def alterar_senha():
     db = get_db()
     
@@ -88,6 +85,21 @@ def alterar_senha():
             
         flash('Enviamos instruções para alterar a senha (verifique seu email).', "success")
         return render_template('auth/email_alteracao.html')
+
+    return render_template('auth/email_alteracao.html')
+
+
+@auth_bp.route('/produto/<produto_id>', methods=['GET'])
+def produto(produto_id):
+    db = get_db()
+    if produto_id.startswith('-'):
+        return {"erro": "Produto não encontrado"}, 404
+
+    produto = db.produtos.find_one({"_id": produto_id})
+    if not produto:
+        return {"erro": "Produto não encontrado", "produto": None}, 404
+
+    return produto
 
 
 

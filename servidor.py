@@ -16,7 +16,7 @@ def criar_app():
 
 
     app.config.from_mapping(
-        SECRET_KEY = os.environ['SECRET_KEY'],
+        SECRET_KEY = os.environ.get('SECRET_KEY', 'dev_secret_key'),
         DATABASE = r".\banco.db",
         JSON_SORT_KEYS = False,
     )
@@ -34,7 +34,7 @@ def criar_app():
 
 
     try:
-        app.register_blueprint(auth_bp, url_prefix='/alterar')
+        app.register_blueprint(auth_bp, url_prefix='/auth')
     except Exception:
 
         pass

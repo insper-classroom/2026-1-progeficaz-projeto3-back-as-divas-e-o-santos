@@ -3,6 +3,8 @@ from email_validator import validate_email, EmailNotValidError
 from flask import session
 import secrets
 from datetime import datetime, timedelta
+from task import alterar_senha as task_alterar_senha
+
 
 
  
@@ -61,7 +63,7 @@ def valida_informacoes(db,nome,email,pwd):
 
     return result, None
 
-
+           
 def alterar_senha(db,email):
     row  = db.users.find_one({"email": email})
     if not row:
@@ -69,12 +71,12 @@ def alterar_senha(db,email):
         return None ,'Este email não está cadastrado.'
     else:
         try:
-            from task import alterar_senha as task_alterar_senha
-            task_alterar_senha.delay(email)
+             task_alterar_senha.delay(email)
         except Exception:
             print("Falha ao agendar alterar_senha task; verifique worker.")
 
         return row, None
+    
 
 
 
