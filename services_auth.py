@@ -3,6 +3,8 @@ from email_validator import validate_email, EmailNotValidError
 from flask import session
 import secrets
 from datetime import datetime, timedelta
+from task import alterar_senha as task_alterar_senha
+
 
 
  
@@ -26,9 +28,10 @@ def valida_informacoes(db,nome,email,pwd):
         email = v.email
     except EmailNotValidError:
         return None, 'Email inválido' 
-     
+    
+    dominios_validos = {"al.insper.edu.br", "insper.edu.br"}
     dominio = email.split("@")[-1]
-    if dominio != "al.insper.edu.br":
+    if dominio not in dominios_validos:
         return None, "Use um email institucional da faculdade."
 
     if len(pwd) < 8:
@@ -60,7 +63,7 @@ def valida_informacoes(db,nome,email,pwd):
 
     return result, None
 
-
+           
 def alterar_senha(db,email):
     row  = db.users.find_one({"email": email})
     if not row:
@@ -74,6 +77,7 @@ def alterar_senha(db,email):
             print("Falha ao agendar alterar_senha task; verifique worker.")
 
         return row, None
+    
 
 
 

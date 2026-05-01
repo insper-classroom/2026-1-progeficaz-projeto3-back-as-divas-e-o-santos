@@ -8,6 +8,7 @@ import os
 import secrets
 from datetime import datetime, timedelta
 from routs.auth import auth_bp
+from routs.user import sugestao_bp
 
 load_dotenv() 
 
@@ -16,7 +17,7 @@ def criar_app():
 
 
     app.config.from_mapping(
-        SECRET_KEY = os.environ['SECRET_KEY'],
+        SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key'),
         DATABASE = r".\banco.db",
         JSON_SORT_KEYS = False,
     )
@@ -30,14 +31,21 @@ def criar_app():
         MAIL_USERNAME = os.environ.get("MAIL_USERNAME"),
         MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD"),
         MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER"),
+        EMAIL_HOST = os.getenv("EMAIL_HOST"),
+        EMAIL_PORT = int(os.getenv("EMAIL_PORT", 465)),
+        EMAIL_USER = os.getenv("EMAIL_USER"),
+        EMAIL_PASS = os.getenv("EMAIL_PASS"),
     )
 
 
+
     try:
-        app.register_blueprint(auth_bp, url_prefix='/alterar')
+        app.register_blueprint(auth_bp, url_prefix='/auth')
     except Exception:
 
         pass
+
+    app.register_blueprint(sugestao_bp, url_prefix='/api/sugestoes')
 
     @app.context_processor
     def inject_flashes():
