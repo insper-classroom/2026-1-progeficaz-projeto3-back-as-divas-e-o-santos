@@ -61,7 +61,7 @@ def alterar_senha(email):
             print(f'email enviado para {email}')
     
     except Exception as e:
-          print('erro ao envia o email',e)
+          print('erro ao enviar email',e)
           raise
     
 @app.task
