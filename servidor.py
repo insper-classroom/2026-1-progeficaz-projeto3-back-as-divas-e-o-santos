@@ -9,8 +9,20 @@ import secrets
 from datetime import datetime, timedelta
 from routs.auth import auth_bp
 from routs.user import sugestao_bp
+import cloudinary
+import cloudinary.uploader
+
+
 
 load_dotenv() 
+
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
+
 
 def criar_app():
     app = Flask(__name__, instance_relative_config=True)
