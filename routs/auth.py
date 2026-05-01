@@ -64,7 +64,7 @@ def registro():
     return render_template('registro.html')
 
 
-@auth_bp.route('/redefinir-senha', methods=['GET', 'POST'])
+@auth_bp.route('/senha', methods=['GET', 'POST'])
 def alterar_senha():
     db = get_db()
     
@@ -87,19 +87,3 @@ def alterar_senha():
         return render_template('auth/email_alteracao.html')
 
     return render_template('auth/email_alteracao.html')
-
-
-@auth_bp.route('/produto/<produto_id>', methods=['GET'])
-def produto(produto_id):
-    db = get_db()
-    if produto_id.startswith('-'):
-        return {"erro": "Produto não encontrado"}, 404
-
-    produto = db.produtos.find_one({"_id": produto_id})
-    if not produto:
-        return {"erro": "Produto não encontrado", "produto": None}, 404
-
-    return produto
-
-
-

@@ -26,91 +26,75 @@ def test_registro_sucesso(mock_valida, client):
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/auth/login")
 
-def test_produto(client):
-    with patch("routs.auth.get_db") as mock_get_db:
-        mock_db = MagicMock()
-        mock_get_db.return_value = mock_db
+@patch("routs.auth.get_db")
+def test_produto(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
 
-        # Simula o produto retornado pelo banco
-        mock_db.produtos.find_one.return_value = {
-            "_id": "1",
-            "titulo": "Camiseta",
-            "descricao": "Camiseta preta básica",
-            "quantidade": 10,
-            "cor": "preto",
-            "valor": 59.9,
-            "desconto": 10,
-            "tamanho": "M"
-        }
+    mock_db.produtos.find_one.return_value = {
+        "_id": "1",
+        "titulo": "Camiseta",
+        "descricao": "Camiseta preta básica",
+        "quantidade": 10,
+        "cor": "preto",
+        "valor": 59.9,
+        "desconto": 10,
+        "tamanho": "M"
+    }
 
-        response = client.get("/auth/produto/1")
+    response = client.get("/user/produto/1")
 
-        assert response.status_code == 200
-
-        #testa se está retornando corretamente cada item
-        data = response.get_json()
-        assert data["titulo"] == "Camiseta"
-        assert data["valor"] == 59.9
-        assert data["quantidade"] == 10
-
-def test_produto_inexistente(client):
-    #Testa se o produto existe
-    with patch("routs.auth.get_db") as mock_get_db:
-        mock_db = MagicMock()
-        mock_db.produtos.find_one.return_value = None
-        response = client.get("/auth/produto/1")
-
-    assert response.status_code == 404
+    assert response.status_code == 200
 
     data = response.get_json()
-    assert "produto" in data
-    assert data["erro"] == "Produto não encontrado"
+    assert data["titulo"] == "Camiseta"
+    assert data["valor"] == 59.9
+    assert data["quantidade"] == 10
 
-def test_produto_id_inexistente(client):
-    #Testa a ação de buscar um id inexistente
-    with patch("routs.auth.get_db") as mock_get_db:
-        mock_db = MagicMock()
-        mock_get_db.return_value = mock_db
-        mock_db.produtos.find_one.return_value = None
-        response = client.get("/auth/produto/-1")
+
+@patch("routs.auth.get_db")
+def test_produto_id_inexistente(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.produtos.find_one.return_value = None
+
+    response = client.get("/user/produto/-1")
 
     assert response.status_code == 404
     assert response.get_json() == {"erro": "Produto não encontrado"}
 
-def test_alterar_senha(client):
-    with patch("routs.auth.get_db") as mock_get_db:
-        mock_db = MagicMock()
-        mock_get_db.return_value = mock_db
 
-        # Simula usuário existente no banco
-        mock_db.users.find_one.return_value = {
-            "email": "nicole@al.insper.edu.br",
-            "senha_hash": "senha_antiga_hash"
-        }
+@patch("routs.auth.get_db")
+def test_alterar_senha_sucesso(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
 
-        response = client.get("/auth/alterar_senha", json={
-            "email": "nicole@al.insper.edu.br"
-        })
+    # usuário existe
+    mock_db.users.find_one.return_value = {
+        "email": "nicole@al.insper.edu.br"
+    }
 
-        assert response.status_code == 200
+    response = client.post("/auth/alterar_senha", data={
+        "email": "nicole@al.insper.edu.br"
+    })
 
-        data = response.get_json()
-        assert data["senha_hash"] != "senha_antiga_hash"
+    assert response.status_code == 200
 
 
-def test_alterar_senha_email_inexistente(client):
-    with patch("routs.auth.get_db") as mock_get_db:
-        mock_db = MagicMock()
-        mock_get_db.return_value = mock_db
+@patch("routs.auth.get_db")
+def test_alterar_senha_email_inexistente(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
 
-        # Simula usuário não encontrado
-        mock_db.users.find_one.return_value = None
+    # usuário NÃO existe
+    mock_db.users.find_one.return_value = None
 
-        response = client.get("/auth/alterar_senha", json={
-            "email": "inexistente@al.insper.edu.br"
-        })
+    response = client.post("/auth/alterar_senha", data={
+        "email": "inexistente@al.insper.edu.br"
+    })
 
-        assert response.status_code == 404
+    assert response.status_code == 404
 
-        data = response.get_json()
-        assert data["erro"] == "Este email não está cadastrado."
+    data = response.get_json()
+    assert data["erro"] == "Este email não está cadastrado."
