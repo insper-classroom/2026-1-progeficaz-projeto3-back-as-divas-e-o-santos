@@ -5,19 +5,13 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 import os
+from celery_app import celery
 
 load_dotenv()
-
-celery = Celery(
-    'tasks',
-    broker='pyamqp://guest@localhost//',
-    backend='db+sqlite:///celery.sqlite'
-)
 
 mail = Mail()
 
 
-# 🔥 cria app só quando precisar (lazy)
 def get_app():
     from servidor import criar_app
     app = criar_app()

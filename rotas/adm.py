@@ -12,7 +12,7 @@ import cloudinary
 import cloudinary.uploader
 
 
-adm_bp = Blueprint('auth', __name__)
+adm_bp = Blueprint('admin', __name__)
 
 @adm_bp.route('/registro', methods=['POST'])
 def registro():
