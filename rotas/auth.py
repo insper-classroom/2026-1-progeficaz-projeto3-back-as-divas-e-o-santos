@@ -8,6 +8,7 @@ import os
 import secrets
 from datetime import datetime, timedelta
 from services import autenticar_usuario, valida_informacoes, alterar_senha
+from services import alterar_senha as service_alterar_senha
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -77,7 +78,7 @@ def alterar_senha():
             flash('Informe o email para alterar a senha.', "error")
             return render_template('auth/email_alteracao.html')
 
-        user, erro = alterar_senha(db, email)
+        user, erro = service_alterar_senha(db, email)
 
         if erro:
             flash(erro, "error")
