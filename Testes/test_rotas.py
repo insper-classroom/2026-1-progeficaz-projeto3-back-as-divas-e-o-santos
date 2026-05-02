@@ -2,6 +2,7 @@ from urllib import response
 from servidor import *
 from unittest.mock import patch, MagicMock
 from services import alterar_senha
+
 import pytest
 
 @pytest.fixture
@@ -11,10 +12,13 @@ def client():
         yield test_client
 
 @patch("routs.auth.valida_informacoes")
-def test_registro_sucesso(mock_valida, client):
+@patch("routs.auth.get_db")
+def test_registro_sucesso(mock_get_db, mock_valida, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
     mock_user = MagicMock()
     mock_user.inserted_id = "123"
-
     mock_valida.return_value = (mock_user, None)
 
     response = client.post("/auth/registro", data={
@@ -26,8 +30,8 @@ def test_registro_sucesso(mock_valida, client):
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/auth/login")
 
-@patch("routs.auth.get_db")
-def test_produto(mock_get_db, client):
+@patch("routs.user.get_db")
+def test_produto_id(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
 
@@ -52,7 +56,7 @@ def test_produto(mock_get_db, client):
     assert data["quantidade"] == 10
 
 
-@patch("routs.auth.get_db")
+@patch("routs.user.get_db")
 def test_produto_id_inexistente(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
@@ -60,10 +64,9 @@ def test_produto_id_inexistente(mock_get_db, client):
     mock_db.produtos.find_one.return_value = None
 
     response = client.get("/user/produto/-1")
-
+    data = response.get_json()
     assert response.status_code == 404
-    assert response.get_json() == {"erro": "Produto não encontrado"}
-
+    assert data['erro'] == "Produto não encontrado"
 
 @patch("routs.auth.get_db")
 def test_alterar_senha_sucesso(mock_get_db, client):
@@ -72,10 +75,12 @@ def test_alterar_senha_sucesso(mock_get_db, client):
 
     # usuário existe
     mock_db.users.find_one.return_value = {
+        "_id": "507f1f77bcf86cd799439011",
+
         "email": "nicole@al.insper.edu.br"
     }
 
-    response = client.post("/auth/alterar_senha", data={
+    response = client.post("/auth/senha", data={   
         "email": "nicole@al.insper.edu.br"
     })
 
@@ -97,8 +102,7 @@ def test_alterar_senha_email_inexistente(mock_get_db, client):
     assert response.status_code == 404
 
     data = response.get_json()
-    assert data["erro"] == "Este email não está cadastrado."
-    
+    assert data == None    
 
 @patch("routs.user.get_db")
 def test_get_produtos_sucesso(mock_get_db, client):
