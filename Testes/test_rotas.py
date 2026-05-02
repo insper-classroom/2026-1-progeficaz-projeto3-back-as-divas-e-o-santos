@@ -1,7 +1,7 @@
 from urllib import response
 from servidor import *
 from unittest.mock import patch, MagicMock
-from services import alterar_senha
+from services.services_auth import alterar_senha
 
 import pytest
 
@@ -11,8 +11,8 @@ def client():
     with app.test_client() as test_client:
         yield test_client
 
-@patch("routs.auth.valida_informacoes")
-@patch("routs.auth.get_db")
+@patch("rotas.auth.valida_informacoes")
+@patch("rotas.auth.get_db")
 def test_registro_sucesso(mock_get_db, mock_valida, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
@@ -30,7 +30,7 @@ def test_registro_sucesso(mock_get_db, mock_valida, client):
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/auth/login")
 
-@patch("routs.user.get_db")
+@patch("rotas.user.get_db")
 def test_produto_id(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
@@ -56,7 +56,7 @@ def test_produto_id(mock_get_db, client):
     assert data["quantidade"] == 10
 
 
-@patch("routs.user.get_db")
+@patch("rotas.user.get_db")
 def test_produto_id_inexistente(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
@@ -68,7 +68,7 @@ def test_produto_id_inexistente(mock_get_db, client):
     assert response.status_code == 404
     assert data['erro'] == "Produto não encontrado"
 
-@patch("routs.auth.get_db")
+@patch("rotas.auth.get_db")
 def test_alterar_senha_sucesso(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
@@ -87,7 +87,7 @@ def test_alterar_senha_sucesso(mock_get_db, client):
     assert response.status_code == 200
 
 
-@patch("routs.auth.get_db")
+@patch("rotas.auth.get_db")
 def test_alterar_senha_email_inexistente(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
@@ -95,7 +95,7 @@ def test_alterar_senha_email_inexistente(mock_get_db, client):
     # usuário NÃO existe
     mock_db.users.find_one.return_value = None
 
-    response = client.post("/auth/alterar_senha", data={
+    response = client.post("/auth/senha", data={
         "email": "inexistente@al.insper.edu.br"
     })
 
@@ -104,7 +104,7 @@ def test_alterar_senha_email_inexistente(mock_get_db, client):
     data = response.get_json()
     assert data == None    
 
-@patch("routs.user.get_db")
+@patch("rotas.user.get_db")
 def test_get_produtos_sucesso(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db

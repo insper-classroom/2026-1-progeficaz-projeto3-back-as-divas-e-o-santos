@@ -82,7 +82,7 @@ def alterar_senha():
 
         if erro:
             flash(erro, "error")
-            return render_template('login.html')
+            return render_template('login.html'), 404
 
         session.clear()
         session['id_verificacao'] = str(user['_id'])
@@ -94,3 +94,4 @@ def alterar_senha():
         return render_template('auth/email_alteracao.html')
 
     return render_template('auth/email_alteracao.html')
+
