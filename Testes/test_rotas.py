@@ -98,3 +98,34 @@ def test_alterar_senha_email_inexistente(mock_get_db, client):
 
     data = response.get_json()
     assert data["erro"] == "Este email não está cadastrado."
+    
+
+@patch("routs.user.get_db")
+def test_get_produtos_sucesso(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+    
+    mock_db.produtos.find.return_value = [
+        {
+            "_id": "1",
+            "titulo": "Camiseta",
+            "valor": 59.9,
+            "quantidade": 10
+        },
+        {
+            "_id": "2",
+            "titulo": "Calça",
+            "valor": 120.0,
+            "quantidade": 5
+        }
+    ]
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+
+    data = response.get_json()
+
+    assert len(data) == 2
+    assert data[0]["titulo"] == "Camiseta"
+    assert data[1]["titulo"] == "Calça"

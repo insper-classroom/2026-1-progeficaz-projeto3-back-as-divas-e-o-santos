@@ -13,6 +13,7 @@ import cloudinary
 import cloudinary.uploader
 
 
+from routs.user import sugestao_bp, user_bp
 
 load_dotenv() 
 
@@ -69,11 +70,8 @@ def criar_app():
 
 app = criar_app()
 
-@app.route('/')
-def root():
-    if 'user_id' in session:
-        return redirect('/home')
-    return redirect('/auth/login')
+app.register_blueprint(user_bp)
+
 
 if __name__ == '__main__':
     app.run(debug=True) 
