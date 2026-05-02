@@ -23,19 +23,19 @@ def login():
 
         if not email or not pwd:
             flash("Preencha o email e a senha.", "error")
-            return render_template('login.html')
+            return render_template('login.html'),400
 
-        user, erro = autenticar_usuario(db, email, pwd)
+        user, erro,http_status = autenticar_usuario(db, email, pwd)
 
         if erro:
             flash(erro, "error")
-            return render_template('login.html')
+            return render_template('login.html'),http_status
 
         session.clear()
         session['user_id'] = str(user['_id'])
 
         flash('Login efetuado com sucesso.', "success")
-        return redirect('/')
+        return redirect('/'),http_status
 
     return render_template('login.html')
 
@@ -50,18 +50,18 @@ def registro():
         raw_pwd = request.form.get('pwd', '')
 
         if not nome or not email or not raw_pwd:
-            return {"erro": "Preencha todos os campos."}, 400
+            return {"erro": "Preencha todos os campos."},400
 
-        user, erro = valida_informacoes(db=db, nome=nome, email=email, pwd=raw_pwd)
+        user, erro, http_status = valida_informacoes(db=db, nome=nome, email=email, pwd=raw_pwd)
     
         if erro:
-            return {"erro": erro}, 400
+            return {"erro": erro},http_status
 
         session.clear()
         session['id_verificacao'] = str(user.inserted_id)
 
         flash('Registro criado. Verifique seu email para confirmar.', "success")
-        return redirect('/auth/login')
+        return redirect('/auth/login'),http_status
 
     return render_template('registro.html')
 
@@ -75,13 +75,13 @@ def alterar_senha():
 
         if not email:
             flash('Informe o email para alterar a senha.', "error")
-            return render_template('auth/email_alteracao.html')
+            return render_template('auth/email_alteracao.html'),400
 
-        user, erro = alterar_senha(db, email)
+        user, erro, http_status= alterar_senha(db, email)
 
         if erro:
             flash(erro, "error")
-            return render_template('login.html')
+            return render_template('login.html'),http_status
 
         session.clear()
         session['id_verificacao'] = str(user['_id'])
@@ -90,6 +90,6 @@ def alterar_senha():
             'Enviamos instruções para alterar a senha (verifique seu email).',
             "success"
         )
-        return render_template('auth/email_alteracao.html')
+        return render_template('auth/email_alteracao.html'),http_status
 
     return render_template('auth/email_alteracao.html')
