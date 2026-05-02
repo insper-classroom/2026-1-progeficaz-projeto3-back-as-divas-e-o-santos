@@ -17,12 +17,12 @@ def homepage():
     return jsonify(produtos)
 
 
-@user_bp.route('/produto/<produto_id>', methods=['GET'])
+@user_bp.route('/user/produto/<produto_id>', methods=['GET'])
 def produto(produto_id):
     db = get_db()
 
     try:
-        obj_id = ObjectId(produto_id)
+        obj_id = (produto_id)
     except:
         return {"erro": "Produto não encontrado"}, 404
 

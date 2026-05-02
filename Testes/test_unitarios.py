@@ -90,5 +90,5 @@ def test_alterar_senha_email_inexistente(mock_db):
     )
 
     assert result is None
-    assert erro == "Usuário já cadastrado."
+    assert erro == "Este email não está cadastrado."
 

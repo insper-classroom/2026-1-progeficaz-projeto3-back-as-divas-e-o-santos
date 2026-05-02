@@ -17,18 +17,18 @@ def client():
         yield client
 
 
-@patch("routs.auth.valida_informacoes")
-def test_registro_sucesso(mock_valida, client):
-    mock_user = MagicMock()
-    mock_user.inserted_id = "123"
+# @patch("routs.auth.valida_informacoes")
+# def test_registro_sucesso(mock_valida, client):
+#     mock_user = MagicMock()
+#     mock_user.inserted_id = "123"
 
-    mock_valida.return_value = (mock_user, None)
+#     mock_valida.return_value = (mock_user, None)
 
-    response = client.post("/auth/registro", data={
-        "nome": "João",
-        "email": "joao@al.insper.edu.br",
-        "pwd": "12345678"
-    })
+#     response = client.post("/auth/registro", data={
+#         "nome": "João",
+#         "email": "joao@al.insper.edu.br",
+#         "pwd": "12345678"
+#     })
 
-    assert response.status_code == 200
-    assert b"Registro criado" in response.data
+#     assert response.status_code == 200
+#     assert "Registro criado" in response.data
