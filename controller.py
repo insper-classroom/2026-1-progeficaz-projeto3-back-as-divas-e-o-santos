@@ -1,5 +1,10 @@
 from banco import get_db
-from services_pasta.user import encontra_emails_admin
+from dotenv import load_dotenv
+import os
+
+
+
+load_dotenv()
 
 def processa_sugestao(data):
     from tasks.tasks import enviar_email_sugestao
@@ -12,7 +17,7 @@ def processa_sugestao(data):
     if len(message) > 1000:
         return {"error": "Mensagem deve ter no máximo 1000 caracteres"}, 400
 
-    admins = encontra_emails_admin(db)
+    admins = os.getenv("CONTACT_EMAIL")
 
     if not admins:
         return {"error": "Nenhum destinatário encontrado"}, 500
