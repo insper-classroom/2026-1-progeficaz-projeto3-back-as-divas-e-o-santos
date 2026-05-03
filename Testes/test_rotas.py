@@ -190,6 +190,52 @@ def test_cancelar_reserva_usuario(mock_get_db, mock_cancelar, client):
     assert data["sucesso"] == "Reserva cancelada com sucesso"
     mock_cancelar.assert_called_once_with(mock_db, str(user_id), str(reserva_id))
     
+
+
+@patch("rotas.adm.get_db")
+@patch("rotas.adm.validar_produto_edicao")
+def test_editar_produto_sucesso(mock_validar, mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_validar.return_value = (
+        {
+            "nome": "Camiseta Nova",
+            "descricao": "Camiseta preta atualizada",
+            "cor": "preto",
+            "tamanho": "M",
+            "valor": 79.9,
+            "quantidade": 8,
+            "desconto": 10,
+            "sku": "CAM-PRE-M",
+            "file": None
+        },
+        None
+    )
+
+    mock_update_result = MagicMock()
+    mock_update_result.matched_count = 1
+    mock_db.produtos.update_one.return_value = mock_update_result
+
+    mock_db.produtos.find_one.return_value = {
+        "_id": "123456789012345678901234",
+        "titulo": "Camiseta Nova",
+        "descricao": "Camiseta preta atualizada",
+        "cor": "preto",
+        "tamanho": "M",
+        "valor": 79.9,
+        "quantidade": 8,
+        "desconto": 10,
+        "sku": "CAM-PRE-M"
+    }
+
+    response = client.put("/produto/123456789012345678901234")
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["msg"] == "Produto atualizado"
+    assert data["produto"]["titulo"] == "Camiseta Nova"
+    
     
 @patch("rotas.adm.get_db")
 def test_delete_produto_sucesso(mock_get_db, client):
@@ -204,6 +250,40 @@ def test_delete_produto_sucesso(mock_get_db, client):
 
     assert response.status_code == 200
     assert response.get_json() == {"msg": "Produto deletado com sucesso"}
+    
+    
+    
+@patch("rotas.adm.get_db")
+@patch("rotas.adm.validar_produto_edicao")
+def test_editar_produto_nao_encontrado(mock_validar, mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_validar.return_value = (
+        {
+            "nome": "Camiseta Nova",
+            "descricao": "Camiseta preta atualizada",
+            "cor": "preto",
+            "tamanho": "M",
+            "valor": 79.9,
+            "quantidade": 8,
+            "desconto": 10,
+            "sku": "CAM-PRE-M",
+            "file": None
+        },
+        None
+    )
+
+    mock_update_result = MagicMock()
+    mock_update_result.matched_count = 0
+    mock_db.produtos.update_one.return_value = mock_update_result
+
+    response = client.put("/produto/123456789012345678901234")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Produto não encontrado"}
+
+    
     
 
 @patch("rotas.adm.get_db")
