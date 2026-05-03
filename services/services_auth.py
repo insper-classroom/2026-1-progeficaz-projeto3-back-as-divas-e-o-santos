@@ -5,30 +5,16 @@ import secrets
 from datetime import datetime, timedelta
 
 
- 
-def autenticar_usuario(db, email, pwd):
-    try:
-        email = validate_email(email).email
-    except EmailNotValidError:
-        return None, "Email inválido."
-
-    user = db.users.find_one({"email": email})
-
-    if not user or not check_password_hash(user['senha_hash'], pwd):
-        return None, "Email ou senha inválidos."
-
-    return user, None
-
-
 def valida_informacoes(db,nome,email,pwd):
     try:
         v = validate_email(email)
         email = v.email
     except EmailNotValidError:
         return None, 'Email inválido' 
-     
+    
+    dominios_validos = ["al.insper.edu.br", "insper.edu.br"]
     dominio = email.split("@")[-1]
-    if dominio != "al.insper.edu.br":
+    if dominio not in dominios_validos:
         return None, "Use um email institucional da faculdade."
 
     if len(pwd) < 8:
@@ -76,4 +62,14 @@ def alterar_senha(db,email):
         return row, None
 
 
+def autenticar_usuario(db, email, pwd):
+    try:
+        email = validate_email(email).email
+    except EmailNotValidError:
+        return None, "Email inválido."  
 
+    user = db.users.find_one({"email": email})
+    if not user or not check_password_hash(user['senha_hash'], pwd):
+        return None, "Email ou senha inválidos."
+
+    return user, None

@@ -11,6 +11,7 @@ from rotas.auth import auth_bp
 from rotas.user import sugestao_bp,user_bp
 import cloudinary
 import cloudinary.uploader
+import unittest
 
 
 
