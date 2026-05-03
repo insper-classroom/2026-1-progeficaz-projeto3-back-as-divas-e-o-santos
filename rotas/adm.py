@@ -65,3 +65,19 @@ def editar_produto(produto_id):
         produto_atualizado["_id"] = str(produto_atualizado["_id"])
 
     return {"msg": "Produto atualizado", "produto": produto_atualizado}, 200
+
+@adm_bp.route('/produto/<produto_id>', methods=['DELETE'])
+def deletar_produto(produto_id):
+    db = get_db()
+
+    try:
+        obj_id = ObjectId(produto_id)
+    except Exception:
+        return {"error": "Produto não encontrado"}, 404
+
+    resultado = db.produtos.delete_one({"_id": obj_id})
+
+    if resultado.deleted_count == 0:
+        return {"error": "Produto não encontrado"}, 404
+
+    return {"msg": "Produto deletado com sucesso"}, 200
