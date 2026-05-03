@@ -1,12 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages, Blueprint, jsonify
-from dotenv import load_dotenv
-from banco import get_db
-from werkzeug.security import generate_password_hash, check_password_hash
-from email_validator import validate_email, EmailNotValidError
-from flask_mailman import EmailMessage, Mail
-import os
-import secrets
-from datetime import datetime, timedelta
+from flask import request, Blueprint
 from services.services_adm import validar_produto,criar_produto
 import cloudinary
 import cloudinary.uploader
@@ -14,8 +6,8 @@ import cloudinary.uploader
 
 adm_bp = Blueprint('admin', __name__)
 
-@adm_bp.route('/registro', methods=['POST'])
-def registro():
+@adm_bp.route('/cadastro/produto', methods=['POST'])
+def cadastro_de_produtos():
     data, error = validar_produto(request)
 
     if error:
