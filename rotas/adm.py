@@ -1,8 +1,9 @@
-from flask import request, Blueprint
+from flask import request, Blueprint, jsonify
 from banco import get_db
-from services.services_adm import validar_produto, criar_produto, validar_produto_edicao
+from services.services_adm import validar_produto, criar_produto, validar_produto_edicao, serializar_reserva
 import cloudinary.uploader
 from bson.objectid import ObjectId
+from datetime import datetime
 
 adm_bp = Blueprint('admin', __name__)
 
@@ -81,3 +82,52 @@ def deletar_produto(produto_id):
         return {"error": "Produto não encontrado"}, 404
 
     return {"msg": "Produto deletado com sucesso"}, 200
+
+
+
+@adm_bp.route('/reservas', methods=['GET'])
+def listar_reservas():
+    db = get_db()
+
+    status = request.args.get("status")
+    filtro = {}
+
+    if status:
+        filtro["status"] = status
+
+    reservas = list(db.reservas.find(filtro))
+
+    resultado = []
+
+    for reserva in reservas:
+        reserva = serializar_reserva(reserva)
+
+        usuario_id = reserva.get("usuario_id")
+        produto_id = reserva.get("produto_id")
+
+        usuario = db.users.find_one({"_id": usuario_id})
+        produto = db.produtos.find_one({"_id": produto_id})
+
+        if usuario:
+            usuario["_id"] = str(usuario["_id"])
+            reserva["usuario"] = {
+                "id": usuario["_id"],
+                "nome": usuario.get("nome"),
+                "email": usuario.get("email")
+            }
+        else:
+            reserva["usuario"] = None
+
+        if produto:
+            produto["_id"] = str(produto["_id"])
+            reserva["produto"] = {
+                "id": produto["_id"],
+                "titulo": produto.get("titulo"),
+                "valor": produto.get("valor")
+            }
+        else:
+            reserva["produto"] = None
+
+        resultado.append(reserva)
+
+    return jsonify(resultado), 200

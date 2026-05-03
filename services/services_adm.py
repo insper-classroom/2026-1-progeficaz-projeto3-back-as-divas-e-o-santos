@@ -1,7 +1,6 @@
-from flask import session
-import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
 from banco import get_db
+from bson.objectid import ObjectId
 
 
 
@@ -133,3 +132,21 @@ def criar_produto(data):
 
     except Exception as e:
         return {"error": "Erro ao salvar produto"}
+    
+
+def serializar_reserva(reserva):
+    reserva["_id"] = str(reserva["_id"])
+
+    if "usuario_id" in reserva and isinstance(reserva["usuario_id"], ObjectId):
+        reserva["usuario_id"] = str(reserva["usuario_id"])
+
+    if "produto_id" in reserva and isinstance(reserva["produto_id"], ObjectId):
+        reserva["produto_id"] = str(reserva["produto_id"])
+
+    if "data_reserva" in reserva and isinstance(reserva["data_reserva"], datetime):
+        reserva["data_reserva"] = reserva["data_reserva"].isoformat()
+
+    if "data_retirada" in reserva and isinstance(reserva["data_retirada"], datetime):
+        reserva["data_retirada"] = reserva["data_retirada"].isoformat()
+
+    return reserva
