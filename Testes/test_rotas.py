@@ -300,3 +300,58 @@ def test_delete_produto_nao_encontrado(mock_get_db, client):
 
     assert response.status_code == 404
     assert response.get_json() == {"error": "Produto não encontrado"}
+    
+    
+
+    
+@patch("rotas.adm.get_db")
+def test_listar_reservas_sucesso(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.reservas.find.return_value = [
+        {
+            "_id": "res1",
+            "usuario_id": 5,
+            "produto_id": 13,
+            "quantidade": 1,
+            "data_reserva": "2026-04-28T09:00:00Z",
+            "data_retirada": "2026-04-30T09:00:00Z",
+            "status": "ativa"
+        }
+    ]
+
+    mock_db.users.find_one.return_value = {
+        "_id": 5,
+        "nome": "Maria",
+        "email": "maria@email.com"
+    }
+
+    mock_db.produtos.find_one.return_value = {
+        "_id": 13,
+        "titulo": "Camiseta",
+        "valor": 59.9
+    }
+
+    response = client.get("/reservas")
+
+    assert response.status_code == 200
+    data = response.get_json()
+
+    assert len(data) == 1
+    assert data[0]["usuario_id"] == 5
+    assert data[0]["produto_id"] == 13
+    assert data[0]["usuario"]["nome"] == "Maria"
+    assert data[0]["produto"]["titulo"] == "Camiseta"
+    
+    
+    
+@patch("rotas.adm.get_db")
+def test_listar_reservas_erro_banco(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.reservas.find.side_effect = Exception("Erro no banco")
+
+    with pytest.raises(Exception):
+        client.get("/reservas")
