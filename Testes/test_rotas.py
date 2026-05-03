@@ -1,6 +1,8 @@
 from urllib import response
 from servidor import *
 from unittest.mock import patch, MagicMock
+from datetime import datetime
+from bson.objectid import ObjectId
 from services.services_auth import alterar_senha
 
 import pytest
@@ -133,3 +135,76 @@ def test_get_produtos_sucesso(mock_get_db, client):
     assert len(data) == 2
     assert data[0]["titulo"] == "Camiseta"
     assert data[1]["titulo"] == "Calça"
+
+
+@patch("rotas.user.buscar_perfil_usuario")
+def test_perfil_usuario_nao_autenticado(mock_buscar, client):
+    response = client.get("/user/perfil")
+
+    assert response.status_code == 401
+    assert response.get_json()["erro"] == "Usuário não autenticado"
+
+
+@patch("rotas.user.buscar_perfil_usuario")
+def test_perfil_usuario_com_reservas(mock_buscar, client):
+    mock_buscar.return_value = {
+        "usuario": {
+            "nome": "Nicole",
+            "email": "nicole@al.insper.edu.br"
+        },
+        "pendentes": [
+            {
+                "id": "507f1f77bcf86cd799439033",
+                "produto": {
+                    "id": "507f1f77bcf86cd799439022",
+                    "nome": "Camiseta",
+                    "descricao": "Preta",
+                    "cor": "preto",
+                    "tamanho": "M"
+                },
+                "quantidade": 1,
+                "data_reserva": "2026-05-02",
+                "data_retirada": "2026-05-03",
+                "status": "ativa",
+                "notificado": False
+            }
+        ],
+        "historico": []
+    }
+
+    user_id = ObjectId("507f1f77bcf86cd799439011")
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = str(user_id)
+
+    response = client.get("/user/perfil")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["usuario"]["nome"] == "Nicole"
+    assert data["usuario"]["email"] == "nicole@al.insper.edu.br"
+    assert len(data["pendentes"]) == 1
+    assert data["pendentes"][0]["produto"]["nome"] == "Camiseta"
+    assert data["pendentes"][0]["data_retirada"] == "2026-05-03"
+    assert data["historico"] == []
+
+
+@patch("rotas.user.cancelar_reserva")
+@patch("rotas.user.get_db")
+def test_cancelar_reserva_usuario(mock_get_db, mock_cancelar, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+    mock_cancelar.return_value = {"sucesso": "Reserva cancelada com sucesso"}
+
+    user_id = ObjectId("507f1f77bcf86cd799439011")
+    reserva_id = ObjectId("507f1f77bcf86cd799439044")
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = str(user_id)
+
+    response = client.post(f"/user/reserva/{reserva_id}/cancelar")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["sucesso"] == "Reserva cancelada com sucesso"
+    mock_cancelar.assert_called_once_with(mock_db, str(user_id), str(reserva_id))
