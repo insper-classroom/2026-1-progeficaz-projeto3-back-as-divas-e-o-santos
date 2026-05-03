@@ -1,7 +1,7 @@
 from urllib import response
 import os
 from unittest.mock import patch, MagicMock
-from routs.auth import *
+from routs import *
 import pytest
 import json
 import requests

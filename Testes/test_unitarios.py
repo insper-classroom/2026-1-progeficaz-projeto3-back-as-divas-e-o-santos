@@ -1,6 +1,6 @@
 from urllib import response
 from servidor import app
-from services import valida_informacoes, alterar_senha
+from services.services_auth import valida_informacoes, alterar_senha
 from unittest.mock import patch, MagicMock
 import pytest   
 import json
