@@ -189,3 +189,34 @@ def test_cancelar_reserva_usuario(mock_get_db, mock_cancelar, client):
     assert response.status_code == 200
     assert data["sucesso"] == "Reserva cancelada com sucesso"
     mock_cancelar.assert_called_once_with(mock_db, str(user_id), str(reserva_id))
+    
+    
+@patch("rotas.adm.get_db")
+def test_delete_produto_sucesso(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_delete_result = MagicMock()
+    mock_delete_result.deleted_count = 1
+    mock_db.produtos.delete_one.return_value = mock_delete_result
+
+    response = client.delete("/produto/123456789012345678901234")
+
+    assert response.status_code == 200
+    assert response.get_json() == {"msg": "Produto deletado com sucesso"}
+    
+
+@patch("rotas.adm.get_db")
+def test_delete_produto_nao_encontrado(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    # simula que não deletou nada
+    mock_delete_result = MagicMock()
+    mock_delete_result.deleted_count = 0
+    mock_db.produtos.delete_one.return_value = mock_delete_result
+
+    response = client.delete("/produto/123456789012345678901234")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Produto não encontrado"}
