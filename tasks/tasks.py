@@ -106,15 +106,15 @@ def verificar_reservas():
 @celery.task
 def enviar_email_sugestao(message, destinatarios):
     try:
+        app = get_app()
         with app.app_context():
-            app = get_app()
-            from flask import current_app
-            from flask_mailman import EmailMessage
-
             body = f"Nova sugestão:\n\n{message}"
 
+            if isinstance(destinatarios, str):
+                destinatarios = [email.strip() for email in destinatarios.split(",") if email.strip()]
+
             msg = EmailMessage(
-                subject="Sugestão recebida",
+                subject="Sugestão Loja Insper",
                 body=body,
                 to=destinatarios
             )
