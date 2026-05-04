@@ -9,6 +9,7 @@ import secrets
 from datetime import datetime, timedelta
 from rotas.auth import auth_bp
 from rotas.user import sugestao_bp,user_bp
+from rotas.adm import adm_bp
 import cloudinary
 import cloudinary.uploader
 import unittest
@@ -70,6 +71,7 @@ def criar_app():
 app = criar_app()
 
 app.register_blueprint(user_bp)
+app.register_blueprint(adm_bp)
 
 
 if __name__ == '__main__':
