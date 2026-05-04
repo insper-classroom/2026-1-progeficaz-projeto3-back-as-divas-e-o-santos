@@ -120,3 +120,27 @@ def obter_reserva(reserva_id):
     reserva["data_retirada"] = reserva["data_retirada"].isoformat()
 
     return jsonify(reserva), 200
+
+
+
+
+@user_bp.route('/configuracoes', methods=['POST'])
+def configuracao():
+
+    user_id = session.get('user_id')
+    if not user_id:
+        return {"erro": "Usuário não autenticado"}, 401
+
+    db = get_db()
+    data = request.get_json()
+    if data is None:
+        return {"erro": "dados não encontrados"}, 400
+    notificacoes_push = data.get("notificacoes_push")
+    promocoes_email = data.get("promocoes_email")
+
+    db.users.update_one({'_id': ObjectId(user_id)},
+    {"$set": {"notificacoes_push": notificacoes_push, "promocoes_email": promocoes_email}})
+
+
+    return {"sucesso": "dados atualizado com sucesso"}, 200
+
