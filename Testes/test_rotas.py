@@ -293,3 +293,28 @@ def test_admin_dashboard_erro(mock_get_db, client):
     response = client.get("/admin/dashboard")
 
     assert response.status_code == 500
+
+
+@patch("rotas.adm.get_db")
+def test_admin_listar_produtos_erro(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.produtos.find.side_effect = Exception("Erro ao consultar produtos")
+
+    response = client.get("/admin/produtos")
+
+    assert response.status_code == 500
+
+
+@patch("rotas.adm.get_db")
+def test_admin_visualizar_produto_erro(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    produto_id = ObjectId()
+    mock_db.produtos.find_one.side_effect = Exception("Erro ao consultar produto")
+
+    response = client.get(f"/admin/produtos/{produto_id}")
+
+    assert response.status_code == 500
