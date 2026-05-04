@@ -16,7 +16,7 @@ def homepage():
     for p in produtos:
         p["_id"] = str(p["_id"])
 
-    return jsonify(produtos)
+    return jsonify(produtos), 200
 
 
 @user_bp.route('/user/produto/<produto_id>', methods=['GET'])
@@ -50,7 +50,7 @@ def perfil_usuario():
     if "erro" in perfil:
         return perfil, 404
 
-    return jsonify(perfil)
+    return jsonify(perfil), 200
 
 @sugestao_bp.route("", methods=["POST"])
 def envia_sugestao():
@@ -68,6 +68,11 @@ def cancelar_reserva_usuario(reserva_id):
     usuario_id = session.get('usuario_id')
     if not usuario_id:
         return {"erro": "Usuário não autenticado"}, 401
+    
+    try:
+        reserva_id = ObjectId(reserva_id)
+    except Exception:
+            return {"erro": "ID inválido"}, 400
 
     db = get_db()
     resultado = cancelar_reserva(db, usuario_id, reserva_id)
@@ -79,6 +84,7 @@ def cancelar_reserva_usuario(reserva_id):
         return resultado, status_code
 
     return jsonify(resultado)
+
 @user_bp.route('/reservas', methods=['POST'])
 def criar_reserva_route():
     db = get_db()
