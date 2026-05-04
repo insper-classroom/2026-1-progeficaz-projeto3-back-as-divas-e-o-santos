@@ -142,7 +142,7 @@ def test_criar_reserva_sucesso_rota(monkeypatch):
     assert response.status_code == 200
     assert response.json["sucesso"] == "Reserva criada com sucesso"
 
-def test_obter_reserva_id_inexistente(monkeypatch):
+def test_obter_reserva_nao_encontrada(monkeypatch):
 
     mongo_client = mongomock.MongoClient()
     db = mongo_client["test_db"]
@@ -191,3 +191,22 @@ def test_obter_reserva_sucesso(monkeypatch):
 
     assert response.status_code == 200
     assert response.json["_id"] == str(reserva_id)
+
+def test_obter_reserva_id_inexistente(monkeypatch):
+    mongo_client = mongomock.MongoClient()
+    db = mongo_client["test_db"]
+
+    monkeypatch.setattr(
+        "rotas.user.get_db",
+        lambda: db
+    )
+    
+
+    reserva_id = str(-1)
+
+    with app.test_client() as client:
+        response = client.get(f"/reservas/{reserva_id}")
+
+    
+    assert response.status_code == 400
+    assert response.json["erro"] == "ID inválido"
