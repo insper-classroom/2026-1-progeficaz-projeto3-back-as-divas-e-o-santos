@@ -17,9 +17,11 @@ def client():
 def test_produto_id(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
+    
+    produto_id = ObjectId()
 
     mock_db.produtos.find_one.return_value = {
-        "_id": "1",
+        "_id": produto_id,
         "titulo": "Camiseta",
         "descricao": "Camiseta preta básica",
         "quantidade": 10,
@@ -29,7 +31,7 @@ def test_produto_id(mock_get_db, client):
         "tamanho": "M"
     }
 
-    response = client.get("/user/produto/1")
+    response = client.get(f"/user/produto/{produto_id}")
 
     assert response.status_code == 200
 
@@ -37,6 +39,10 @@ def test_produto_id(mock_get_db, client):
     assert data["titulo"] == "Camiseta"
     assert data["valor"] == 59.9
     assert data["quantidade"] == 10
+    assert data["cor"] == "preto"
+    assert data["valor"] == 59.9
+    assert data["desconto"] == 10
+    assert data["tamanho"] == "M"
 
 
 @patch("rotas.user.get_db")

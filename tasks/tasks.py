@@ -103,10 +103,11 @@ def verificar_reservas():
 
     print("verificação finalizada")
 
-@app.task
+@celery.task
 def enviar_email_sugestao(message, destinatarios):
     try:
-        with flask_app.app_context():
+        with app.app_context():
+            app = get_app()
             from flask import current_app
             from flask_mailman import EmailMessage
 
