@@ -1,10 +1,7 @@
 from urllib import response
 import os
 from unittest.mock import patch, MagicMock
-from routs import *
 import pytest
-import json
-import requests
 
 os.environ.setdefault('SECRET_KEY', 'test_secret_key')
 
@@ -17,18 +14,21 @@ def client():
         yield client
 
 
-# @patch("routs.auth.valida_informacoes")
-# def test_registro_sucesso(mock_valida, client):
-#     mock_user = MagicMock()
-#     mock_user.inserted_id = "123"
+@patch("rotas.auth.valida_informacoes")
+@patch("rotas.auth.get_db")
+def test_registro_sucesso(mock_get_db, mock_valida, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
 
-#     mock_valida.return_value = (mock_user, None)
+    mock_user = MagicMock()
+    mock_user.inserted_id = "123"
+    mock_valida.return_value = (mock_user, None)
 
-#     response = client.post("/auth/registro", data={
-#         "nome": "João",
-#         "email": "joao@al.insper.edu.br",
-#         "pwd": "12345678"
-#     })
+    response = client.post("/auth/registro", data={
+        "nome": "João",
+        "email": "joao@al.insper.edu.br",
+        "pwd": "12345678"
+    }, follow_redirects=False)
 
-#     assert response.status_code == 200
-#     assert "Registro criado" in response.data
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/auth/login")

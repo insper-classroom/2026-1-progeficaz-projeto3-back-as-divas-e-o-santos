@@ -12,7 +12,7 @@ def test_verificar_reservas_envia_email(monkeypatch):
     client = mongomock.MongoClient()
     db = client["test_db"]
 
-    agora = datetime(2026, 5, 2)
+    agora = datetime(2026, 5, 2) 
     inicio = agora.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
     user_id = "user1"
@@ -77,10 +77,10 @@ def test_criar_reserva_sucesso():
 
     user_id = ObjectId()
     produto_id = ObjectId()
-
+    
     db.produtos.insert_one({
         "_id": produto_id,
-        "estoque": 2
+        "quantidade": 2
     })
 
     resultado = criar_reserva(
@@ -129,7 +129,7 @@ def test_criar_reserva_sucesso_rota(monkeypatch):
 
     db.produtos.insert_one({
         "_id": produto_id,
-        "estoque": 2
+        "quantidade": 2
     })
     
     with app.test_client() as client:
@@ -188,9 +188,6 @@ def test_obter_reserva_sucesso(monkeypatch):
     with app.test_client() as client:
         response = client.get(f"/reservas/{reserva_id}")
 
-    print("AAAAAAAAAAA")
-    print(response.data)
-    print("AAAAAAAAAAA")
 
     assert response.status_code == 200
     assert response.json["_id"] == str(reserva_id)

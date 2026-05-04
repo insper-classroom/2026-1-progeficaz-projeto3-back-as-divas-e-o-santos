@@ -8,7 +8,6 @@ load_dotenv()
 
 def processa_sugestao(data):
     from tasks.tasks import enviar_email_sugestao
-    db = get_db()
     message = data.get("message")
 
     if not isinstance(message, str) or not message.strip():

@@ -5,6 +5,7 @@ from services.services_user import buscar_perfil_usuario, cancelar_reserva,criar
 from flask import Blueprint, jsonify, request
 from banco import get_db
 from bson.objectid import ObjectId
+from controller import processa_sugestao
 
 user_bp = Blueprint('user', __name__)
 sugestao_bp = Blueprint('sugestao', __name__)
@@ -37,7 +38,7 @@ def produto(produto_id):
 
     produto["_id"] = str(produto["_id"])
 
-    return jsonify(produto)
+    return jsonify(produto), 200
 
 
 @user_bp.route('/user/perfil', methods=['GET'])
@@ -53,6 +54,16 @@ def perfil_usuario():
         return perfil, 404
 
     return jsonify(perfil)
+
+@sugestao_bp.route("", methods=["POST"])
+def envia_sugestao():
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({"error": "JSON inválido"}), 400
+
+    response, status = processa_sugestao(data)
+    return jsonify(response), status
 
 
 @user_bp.route('/user/reserva/<reserva_id>/cancelar', methods=['POST'])
@@ -109,3 +120,27 @@ def obter_reserva(reserva_id):
     reserva["data_retirada"] = reserva["data_retirada"].isoformat()
 
     return jsonify(reserva), 200
+
+
+
+
+@user_bp.route('/configuracoes', methods=['POST'])
+def configuracao():
+
+    user_id = session.get('user_id')
+    if not user_id:
+        return {"erro": "Usuário não autenticado"}, 401
+
+    db = get_db()
+    data = request.get_json()
+    if data is None:
+        return {"erro": "dados não encontrados"}, 400
+    notificacoes_push = data.get("notificacoes_push")
+    promocoes_email = data.get("promocoes_email")
+
+    db.users.update_one({'_id': ObjectId(user_id)},
+    {"$set": {"notificacoes_push": notificacoes_push, "promocoes_email": promocoes_email}})
+
+
+    return {"sucesso": "dados atualizado com sucesso"}, 200
+

@@ -1,18 +1,9 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash, get_flashed_messages, Blueprint, jsonify
-from dotenv import load_dotenv
+from flask import render_template, redirect, request, session, flash, Blueprint
 from banco import get_db
-from werkzeug.security import generate_password_hash, check_password_hash
-from email_validator import validate_email, EmailNotValidError
-from flask_mailman import EmailMessage, Mail
-import os
-import secrets
-from datetime import datetime, timedelta
-from services import autenticar_usuario, valida_informacoes, alterar_senha
+from services import autenticar_usuario, valida_informacoes
 from services import alterar_senha as service_alterar_senha
 
-
 auth_bp = Blueprint('auth', __name__)
-
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
