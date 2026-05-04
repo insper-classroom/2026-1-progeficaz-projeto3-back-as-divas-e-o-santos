@@ -62,5 +62,8 @@ def visualizar_produto_admin(produto_id):
 
 @adm_bp.route('/admin/dashboard', methods=['GET'])
 def dashboard_admin():
-    db = get_db()
-    return buscar_dashboard_admin(db)
+    try:
+        db = get_db()
+        return buscar_dashboard_admin(db)
+    except Exception as e:
+        return {"erro": "Erro ao carregar dashboard"}, 500

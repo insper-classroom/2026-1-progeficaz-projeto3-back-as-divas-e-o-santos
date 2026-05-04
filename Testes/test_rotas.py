@@ -260,3 +260,36 @@ def test_admin_visualizar_produto(mock_get_db, client):
     assert data["desconto"] == 10
     assert data["tamanho"] == "M"
     assert "_id" not in data
+
+@patch("rotas.adm.get_db")
+def test_admin_dashboard(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    hoje = datetime.utcnow().date()
+    data_reserva = datetime(hoje.year, hoje.month, hoje.day, 8, 0, 0)
+    mock_db.reservas.find.return_value = [
+        {"quantidade": 2, "data_reserva": data_reserva},
+        {"quantidade": 1, "data_reserva": data_reserva}
+    ]
+    mock_db.produtos.count_documents.return_value = 3
+
+    response = client.get("/admin/dashboard")
+
+    assert response.status_code == 200
+
+    data = response.get_json()
+    assert data["produtos_vendidos"] == 3
+    assert data["produtos_estoque_baixo"] == 3
+    assert data["reservas_hoje"] == 2
+
+@patch("rotas.adm.get_db")
+def test_admin_dashboard_erro(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.reservas.find.side_effect = Exception("Erro ao consultar banco")
+
+    response = client.get("/admin/dashboard")
+
+    assert response.status_code == 500
