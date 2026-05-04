@@ -130,17 +130,17 @@ def obter_reserva(reserva_id):
 
 
 
-@user_bp.route('/configuracoes', methods=['POST'])
-def configuracao():
+@user_bp.route('/configuracoes/<user_id>', methods=['POST'])
+def configuracao(user_id):
 
     user_id = session.get('user_id')
     if not user_id:
         return {"erro": "Usuário não autenticado"}, 401
 
     db = get_db()
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if data is None:
-        return {"erro": "dados não encontrados"}, 400
+        return jsonify({"erro": "Dados não encontrados"}), 400
     notificacoes_push = data.get("notificacoes_push")
     promocoes_email = data.get("promocoes_email")
 
@@ -148,5 +148,5 @@ def configuracao():
     {"$set": {"notificacoes_push": notificacoes_push, "promocoes_email": promocoes_email}})
 
 
-    return {"sucesso": "dados atualizado com sucesso"}, 200
+    return {"sucesso": "Dados atualizado com sucesso"}, 200
 
