@@ -195,3 +195,169 @@ def test_cancelar_reserva_usuario(mock_get_db, mock_cancelar, client):
     assert response.status_code == 200
     assert data["sucesso"] == "Reserva cancelada com sucesso"
     mock_cancelar.assert_called_once_with(mock_db, str(user_id), str(reserva_id))
+    
+
+
+@patch("rotas.adm.get_db")
+@patch("rotas.adm.validar_produto_edicao")
+def test_editar_produto_sucesso(mock_validar, mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_validar.return_value = (
+        {
+            "nome": "Camiseta Nova",
+            "descricao": "Camiseta preta atualizada",
+            "cor": "preto",
+            "tamanho": "M",
+            "valor": 79.9,
+            "quantidade": 8,
+            "desconto": 10,
+            "sku": "CAM-PRE-M",
+            "file": None
+        },
+        None
+    )
+
+    mock_update_result = MagicMock()
+    mock_update_result.matched_count = 1
+    mock_db.produtos.update_one.return_value = mock_update_result
+
+    mock_db.produtos.find_one.return_value = {
+        "_id": "123456789012345678901234",
+        "titulo": "Camiseta Nova",
+        "descricao": "Camiseta preta atualizada",
+        "cor": "preto",
+        "tamanho": "M",
+        "valor": 79.9,
+        "quantidade": 8,
+        "desconto": 10,
+        "sku": "CAM-PRE-M"
+    }
+
+    response = client.put("/produto/123456789012345678901234")
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["msg"] == "Produto atualizado"
+    assert data["produto"]["titulo"] == "Camiseta Nova"
+    
+    
+@patch("rotas.adm.get_db")
+def test_delete_produto_sucesso(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_delete_result = MagicMock()
+    mock_delete_result.deleted_count = 1
+    mock_db.produtos.delete_one.return_value = mock_delete_result
+
+    response = client.delete("/produto/123456789012345678901234")
+
+    assert response.status_code == 200
+    assert response.get_json() == {"msg": "Produto deletado com sucesso"}
+    
+    
+    
+@patch("rotas.adm.get_db")
+@patch("rotas.adm.validar_produto_edicao")
+def test_editar_produto_nao_encontrado(mock_validar, mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_validar.return_value = (
+        {
+            "nome": "Camiseta Nova",
+            "descricao": "Camiseta preta atualizada",
+            "cor": "preto",
+            "tamanho": "M",
+            "valor": 79.9,
+            "quantidade": 8,
+            "desconto": 10,
+            "sku": "CAM-PRE-M",
+            "file": None
+        },
+        None
+    )
+
+    mock_update_result = MagicMock()
+    mock_update_result.matched_count = 0
+    mock_db.produtos.update_one.return_value = mock_update_result
+
+    response = client.put("/produto/123456789012345678901234")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Produto não encontrado"}
+
+    
+    
+
+@patch("rotas.adm.get_db")
+def test_delete_produto_nao_encontrado(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    # simula que não deletou nada
+    mock_delete_result = MagicMock()
+    mock_delete_result.deleted_count = 0
+    mock_db.produtos.delete_one.return_value = mock_delete_result
+
+    response = client.delete("/produto/123456789012345678901234")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Produto não encontrado"}
+    
+    
+
+    
+@patch("rotas.adm.get_db")
+def test_listar_reservas_sucesso(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.reservas.find.return_value = [
+        {
+            "_id": "res1",
+            "usuario_id": 5,
+            "produto_id": 13,
+            "quantidade": 1,
+            "data_reserva": "2026-04-28T09:00:00Z",
+            "data_retirada": "2026-04-30T09:00:00Z",
+            "status": "ativa"
+        }
+    ]
+
+    mock_db.users.find_one.return_value = {
+        "_id": 5,
+        "nome": "Maria",
+        "email": "maria@email.com"
+    }
+
+    mock_db.produtos.find_one.return_value = {
+        "_id": 13,
+        "titulo": "Camiseta",
+        "valor": 59.9
+    }
+
+    response = client.get("/reservas")
+
+    assert response.status_code == 200
+    data = response.get_json()
+
+    assert len(data) == 1
+    assert data[0]["usuario_id"] == 5
+    assert data[0]["produto_id"] == 13
+    assert data[0]["usuario"]["nome"] == "Maria"
+    assert data[0]["produto"]["titulo"] == "Camiseta"
+    
+    
+    
+@patch("rotas.adm.get_db")
+def test_listar_reservas_erro_banco(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    mock_db.reservas.find.side_effect = Exception("Erro no banco")
+
+    with pytest.raises(Exception):
+        client.get("/reservas")
