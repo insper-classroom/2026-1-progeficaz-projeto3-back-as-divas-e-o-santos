@@ -1,5 +1,5 @@
 from flask import request, Blueprint
-from services.services_adm import validar_produto, criar_produto
+from services.services_adm import validar_produto, criar_produto, buscar_dashboard_admin
 from bson.objectid import ObjectId
 from banco import get_db
 import cloudinary.uploader
@@ -58,3 +58,9 @@ def visualizar_produto_admin(produto_id):
         return {"erro": "Produto não encontrado"}, 404
 
     return produto_para_json(produto)
+
+
+@adm_bp.route('/admin/dashboard', methods=['GET'])
+def dashboard_admin():
+    db = get_db()
+    return buscar_dashboard_admin(db)
