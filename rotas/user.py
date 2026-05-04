@@ -92,10 +92,10 @@ def criar_reserva_route():
     data = request.get_json()
 
     resultado = criar_reserva(
-        db=db,
-        usuario_id=data.get("usuario_id"),
-        produto_id=data.get("produto_id"),
-        data_retirada=data.get("data_retirada")
+        db,
+        data.get("usuario_id"),
+        data.get("produto_id"),
+        data.get("data_retirada")
     )
 
     if "erro" in resultado:

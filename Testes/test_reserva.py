@@ -92,6 +92,7 @@ def test_criar_reserva_sucesso():
 
     assert resultado == {"sucesso": "Reserva criada com sucesso"}
     assert db.reservas.count_documents({}) == 1
+
     
 def test_criar_reserva_produto_esgotado():
     client = mongomock.MongoClient()
@@ -128,15 +129,16 @@ def test_criar_reserva_sucesso_rota(monkeypatch):
     produto_id = ObjectId()
 
     db.produtos.insert_one({
+        
         "_id": produto_id,
         "quantidade": 2
     })
     
     with app.test_client() as client:
         response = client.post("/reservas", json={
-            "user_id": str(user_id),
+            "usuario_id": str(user_id),
             "produto_id": str(produto_id),
-            "data": "2026-05-10"
+            "data_retirada": "2026-05-10"
         })
 
     assert response.status_code == 200
@@ -163,34 +165,34 @@ def test_obter_reserva_nao_encontrada(monkeypatch):
     assert response.json["erro"] == "Reserva não encontrada"
 
 
-def test_obter_reserva_sucesso(monkeypatch):
+    def test_obter_reserva_sucesso(monkeypatch):
 
-    mongo_client = mongomock.MongoClient()
-    db = mongo_client["test_db"]
+        mongo_client = mongomock.MongoClient()
+        db = mongo_client["test_db"]
 
-    monkeypatch.setattr(
-        "rotas.user.get_db",
-        lambda: db
-    )
-    reserva_id = ObjectId()
-
-
-    db.reservas.insert_one({
-        "_id": reserva_id,
-        "user_id": ObjectId(),
-        "produto_id": ObjectId(),
-        "data_retirada": datetime(2026, 5, 10),
-        "status": "ativa",
-        "notificado": False
-    })
-    
-
-    with app.test_client() as client:
-        response = client.get(f"/reservas/{reserva_id}")
+        monkeypatch.setattr(
+            "rotas.user.get_db",
+            lambda: db
+        )
+        reserva_id = ObjectId()
 
 
-    assert response.status_code == 200
-    assert response.json["_id"] == str(reserva_id)
+        db.reservas.insert_one({
+            "_id": reserva_id,
+            "usuario_id": ObjectId(),
+            "produto_id": ObjectId(),
+            "data_retirada": datetime(2026, 5, 10),
+            "status": "ativa",
+            "notificado": False
+        })
+        
+
+        with app.test_client() as client:
+            response = client.get(f"/reservas/{reserva_id}")
+
+
+        assert response.status_code == 200
+        assert response.json["_id"] == str(reserva_id)
 
 def test_obter_reserva_id_inexistente(monkeypatch):
     mongo_client = mongomock.MongoClient()

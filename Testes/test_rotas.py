@@ -144,7 +144,7 @@ def test_perfil_usuario_sem_reservas(mock_buscar, client):
     user_id = ObjectId("507f1f77bcf86cd799439011")
 
     with client.session_transaction() as sess:
-        sess["user_id"] = str(user_id)
+        sess["usuario_id"] = str(user_id)
 
     response = client.get("/user/perfil")
 
@@ -186,7 +186,7 @@ def test_perfil_usuario_com_reservas(mock_buscar, client):
     user_id = ObjectId("507f1f77bcf86cd799439011")
 
     with client.session_transaction() as sess:
-        sess["user_id"] = str(user_id)
+        sess["usuario_id"] = str(user_id)
 
     response = client.get("/user/perfil")
     data = response.get_json()
@@ -205,7 +205,7 @@ def test_perfil_usuario_nao_econtrado(mock_bucas, client):
     
     user_id = ObjectId("507f1f77bcf86cd799439011")
     with client.session_transaction() as sess:
-        sess["user_id"] = str(user_id)
+        sess["usuario_id"] = str(user_id)
 
     response = client.get("user/perfil")
     data = response.get_json()
@@ -221,17 +221,16 @@ def test_cancelar_reserva_usuario(mock_get_db, mock_cancelar, client):
     mock_cancelar.return_value = {"sucesso": "Reserva cancelada com sucesso"}
 
     user_id = ObjectId("507f1f77bcf86cd799439011")
-    reserva_id = ObjectId("507f1f77bcf86cd799439011")
+    reserva_id = str(ObjectId("507f1f77bcf86cd799439011"))
 
     with client.session_transaction() as sess:
-        sess["user_id"] = str(user_id)
+        sess["usuario_id"] = str(user_id)
 
     response = client.post(f"/user/reserva/{reserva_id}/cancelar")
     data = response.get_json()
 
     assert response.status_code == 200
     assert data["sucesso"] == "Reserva cancelada com sucesso"
-<<<<<<< verificacao-de-testes-faltantes
     mock_cancelar.assert_called_once_with(mock_db, str(user_id), ObjectId(reserva_id))
 
 @patch("rotas.user.get_db")
@@ -254,7 +253,7 @@ def test_cancelar_reserva_nao_encontrada(mock_get_db, mock_cancelar, client):
     reserva_id = ObjectId("507f1f77bcf86cd799439044")
 
     with client.session_transaction() as sess:
-        sess["user_id"] = str(user_id)
+        sess["usuario_id"] = str(user_id)
 
     response = client.post(f"/user/reserva/{reserva_id}/cancelar")
     data = response.get_json()
@@ -270,18 +269,16 @@ def test_cancelar_reserva_id_invalido(mock_get_db, mock_cancelar, client):
 
     # Usuário autenticado
     user_id = ObjectId("507f1f77bcf86cd799439011")
+    reserva_id = str(-1)
 
     with client.session_transaction() as sess:
-        sess["user_id"] = str(user_id)
+        sess["usuario_id"] = str(user_id)
 
-    reserva_id = str(-1)
 
     response = client.post(f"/user/reserva/{reserva_id}/cancelar")
 
     assert response.status_code == 400
     assert response.get_json()["erro"] == "ID inválido"
-=======
-    mock_cancelar.assert_called_once_with(mock_db, str(user_id), str(reserva_id))
     
 
 
@@ -448,4 +445,3 @@ def test_listar_reservas_erro_banco(mock_get_db, client):
 
     with pytest.raises(Exception):
         client.get("/reservas")
->>>>>>> main
