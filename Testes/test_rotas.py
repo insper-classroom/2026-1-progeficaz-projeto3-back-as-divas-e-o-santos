@@ -14,6 +14,36 @@ def client():
         yield test_client
 
 @patch("rotas.user.get_db")
+def test_get_produtos_sucesso(mock_get_db, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+    
+    mock_db.produtos.find.return_value = [
+        {
+            "_id": "1",
+            "titulo": "Camiseta",
+            "valor": 59.9,
+            "quantidade": 10
+        },
+        {
+            "_id": "2",
+            "titulo": "Calça",
+            "valor": 120.0,
+            "quantidade": 5
+        }
+    ]
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+
+    data = response.get_json()
+
+    assert len(data) == 2
+    assert data[0]["titulo"] == "Camiseta"
+    assert data[1]["titulo"] == "Calça"
+
+@patch("rotas.user.get_db")
 def test_produto_id(mock_get_db, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
@@ -93,37 +123,6 @@ def test_alterar_senha_email_inexistente(mock_get_db, client):
     data = response.get_json()
     assert data == None    
 
-@patch("rotas.user.get_db")
-def test_get_produtos_sucesso(mock_get_db, client):
-    mock_db = MagicMock()
-    mock_get_db.return_value = mock_db
-    
-    mock_db.produtos.find.return_value = [
-        {
-            "_id": "1",
-            "titulo": "Camiseta",
-            "valor": 59.9,
-            "quantidade": 10
-        },
-        {
-            "_id": "2",
-            "titulo": "Calça",
-            "valor": 120.0,
-            "quantidade": 5
-        }
-    ]
-
-    response = client.get("/")
-
-    assert response.status_code == 200
-
-    data = response.get_json()
-
-    assert len(data) == 2
-    assert data[0]["titulo"] == "Camiseta"
-    assert data[1]["titulo"] == "Calça"
-
-
 @patch("rotas.user.buscar_perfil_usuario")
 def test_perfil_usuario_nao_autenticado(mock_buscar, client):
     response = client.get("/user/perfil")
@@ -131,6 +130,31 @@ def test_perfil_usuario_nao_autenticado(mock_buscar, client):
     assert response.status_code == 401
     assert response.get_json()["erro"] == "Usuário não autenticado"
 
+@patch("rotas.user.buscar_perfil_usuario")
+def test_perfil_usuario_sem_reservas(mock_buscar, client):
+    mock_buscar.return_value = {
+            "usuario": {
+            "nome": "Eduarda",
+            "email": "eduarda@al.insper.edu.br"
+        },
+        "pendentes": [],
+        "historico": []
+    }
+
+    user_id = ObjectId("507f1f77bcf86cd799439011")
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = str(user_id)
+
+    response = client.get("/user/perfil")
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["usuario"]["nome"] == "Eduarda"
+    assert data["usuario"]["email"] == "eduarda@al.insper.edu.br"
+    assert len(data["pendentes"]) == 0
+    assert data["historico"] == [] 
 
 @patch("rotas.user.buscar_perfil_usuario")
 def test_perfil_usuario_com_reservas(mock_buscar, client):
@@ -175,6 +199,19 @@ def test_perfil_usuario_com_reservas(mock_buscar, client):
     assert data["pendentes"][0]["data_retirada"] == "2026-05-03"
     assert data["historico"] == []
 
+@patch("rotas.user.buscar_perfil_usuario")
+def test_perfil_usuario_nao_econtrado(mock_bucas, client):
+    mock_bucas.return_value = {'erro': "Usuário não encontrado"}
+    
+    user_id = ObjectId("507f1f77bcf86cd799439011")
+    with client.session_transaction() as sess:
+        sess["user_id"] = str(user_id)
+
+    response = client.get("user/perfil")
+    data = response.get_json()
+
+    assert response.status_code == 404
+    assert data["erro"] == "Usuário não encontrado"
 
 @patch("rotas.user.cancelar_reserva")
 @patch("rotas.user.get_db")
@@ -182,6 +219,35 @@ def test_cancelar_reserva_usuario(mock_get_db, mock_cancelar, client):
     mock_db = MagicMock()
     mock_get_db.return_value = mock_db
     mock_cancelar.return_value = {"sucesso": "Reserva cancelada com sucesso"}
+
+    user_id = ObjectId("507f1f77bcf86cd799439011")
+    reserva_id = ObjectId("507f1f77bcf86cd799439011")
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = str(user_id)
+
+    response = client.post(f"/user/reserva/{reserva_id}/cancelar")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["sucesso"] == "Reserva cancelada com sucesso"
+    mock_cancelar.assert_called_once_with(mock_db, str(user_id), ObjectId(reserva_id))
+
+@patch("rotas.user.get_db")
+def test_cancelar_reserva_usuario_nao_identificado(mock_get_db, client):
+    reserva_id = ObjectId("507f1f77bcf86cd799439044")
+
+    response = client.post(f"/user/reserva/{reserva_id}/cancelar")
+
+    assert response.status_code == 401
+    assert response.get_json()["erro"] == "Usuário não autenticado"
+
+@patch("rotas.user.cancelar_reserva")
+@patch("rotas.user.get_db")
+def test_cancelar_reserva_nao_encontrada(mock_get_db, mock_cancelar, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+    mock_cancelar.return_value = {"erro": "Reserva não encontrada"}
 
     user_id = ObjectId("507f1f77bcf86cd799439011")
     reserva_id = ObjectId("507f1f77bcf86cd799439044")
@@ -192,6 +258,24 @@ def test_cancelar_reserva_usuario(mock_get_db, mock_cancelar, client):
     response = client.post(f"/user/reserva/{reserva_id}/cancelar")
     data = response.get_json()
 
-    assert response.status_code == 200
-    assert data["sucesso"] == "Reserva cancelada com sucesso"
-    mock_cancelar.assert_called_once_with(mock_db, str(user_id), str(reserva_id))
+    assert response.status_code == 404
+    assert data["erro"] == "Reserva não encontrada"
+
+@patch("rotas.user.cancelar_reserva")
+@patch("rotas.user.get_db")
+def test_cancelar_reserva_id_invalido(mock_get_db, mock_cancelar, client):
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+
+    # Usuário autenticado
+    user_id = ObjectId("507f1f77bcf86cd799439011")
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = str(user_id)
+
+    reserva_id = str(-1)
+
+    response = client.post(f"/user/reserva/{reserva_id}/cancelar")
+
+    assert response.status_code == 400
+    assert response.get_json()["erro"] == "ID inválido"
