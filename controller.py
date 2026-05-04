@@ -1,8 +1,5 @@
-from banco import get_db
 from dotenv import load_dotenv
 import os
-
-
 
 load_dotenv()
 
@@ -16,14 +13,14 @@ def processa_sugestao(data):
     if len(message) > 1000:
         return {"error": "Mensagem deve ter no máximo 1000 caracteres"}, 400
 
-    admins = os.getenv("CONTACT_EMAIL")
+    admin = os.getenv("CONTACT_EMAIL")
 
-    if not admins:
+    if not admin or not admin.strip():
         return {"error": "Nenhum destinatário encontrado"}, 500
 
     try:
-        enviar_email_sugestao.delay(message, admins)
+        enviar_email_sugestao.delay(message, admin)
     except Exception:
         return {"error": "Erro ao enviar email"}, 500
 
-    return {"message": "Sugestão enviada para a fila com sucesso!"}, 201
+    return {"message": "Sugestão enviada para a fila com sucesso!"}, 202
