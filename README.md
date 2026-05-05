@@ -56,7 +56,7 @@ Você pode acessá-lo pelo link abaixo:
 🔗 <LINK_DO_PROJETO>
 
 http://3.19.72.217
-
+http://loja-insper-frontend.s3-website.us-east-2.amazonaws.com
 
 ## Equipe
 
