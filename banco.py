@@ -5,7 +5,7 @@ from flask import current_app, g
 def get_db():
     if 'mongo' not in g:
         uri = os.environ.get("MONGO_URI")
-        dbname = os.environ.get("MONGO_DBNAME", "banco_lojinha")
+        dbname = os.environ.get("MONGO_DBNAME", "loja")
 
         print(f"Tentando conectar ao MongoDB: URI={uri}, DB={dbname}")
         try:

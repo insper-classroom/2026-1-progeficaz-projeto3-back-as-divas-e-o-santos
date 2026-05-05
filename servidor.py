@@ -73,6 +73,8 @@ app = criar_app()
 app.register_blueprint(user_bp)
 app.register_blueprint(adm_bp)
 
+app.register_blueprint(adm_bp)
+
 
 if __name__ == '__main__':
     app.run(debug=True) 
