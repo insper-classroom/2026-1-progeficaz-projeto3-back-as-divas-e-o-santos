@@ -105,6 +105,27 @@ def validar_produto_edicao(request):
     }, None
     
 
+
+def buscar_dashboard_admin(db, limite_estoque_baixo=5):
+    agora = datetime.utcnow()
+    inicio = datetime(agora.year, agora.month, agora.day)
+    fim = inicio + timedelta(days=1)
+
+    reservas_hoje = list(db.reservas.find({
+        "data_reserva": {"$gte": inicio, "$lt": fim}
+    }))
+
+    produtos_vendidos = sum(reserva.get("quantidade", 0) for reserva in reservas_hoje)
+    quantidade_reservas_hoje = len(reservas_hoje)
+    produtos_estoque_baixo = db.produtos.count_documents({"quantidade": {"$lte": limite_estoque_baixo}})
+
+    return {
+        "produtos_vendidos": produtos_vendidos,
+        "produtos_estoque_baixo": produtos_estoque_baixo,
+        "reservas_hoje": quantidade_reservas_hoje
+    }
+
+
 def criar_produto(data):
     db = get_db()
 

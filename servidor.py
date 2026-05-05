@@ -73,6 +73,7 @@ def criar_app():
 app = criar_app()
 
 app.register_blueprint(user_bp)
+app.register_blueprint(adm_bp)
 
 app.register_blueprint(adm_bp)
 
