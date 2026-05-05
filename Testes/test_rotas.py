@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime
 from bson.objectid import ObjectId
 from services.services_auth import alterar_senha
+from io import BytesIO
 
 import pytest
 
@@ -280,6 +281,101 @@ def test_cancelar_reserva_id_invalido(mock_get_db, mock_cancelar, client):
     assert response.status_code == 400
     assert response.get_json()["erro"] == "ID inválido"
     
+
+@patch("rotas.adm.criar_produto")
+@patch("rotas.adm.cloudinary.uploader.upload")
+def test_cadastro_produto_sucesso(mock_upload, mock_criar, client):
+    mock_upload.return_value = {"secure_url": "https://cloudinary.com/imagem.jpg"}
+    mock_criar.return_value = {"id": "abc123", "sku": "CAMISA-AZUL-M"}
+
+    imagem = (BytesIO(b"conteudo da imagem"), "foto.jpg")
+
+    response = client.post("/produto", data={
+        "titulo": "Camisa",
+        "descricao": "Camisa bonita",
+        "cor": "Azul",
+        "tamanho": "M",
+        "valor": "99.90",
+        "quantidade": "10",
+        "desconto": "0",
+        "image": imagem
+    }, content_type="multipart/form-data")
+
+    data = response.get_json()
+
+    assert response.status_code == 201
+    assert data["msg"] == "Produto criado"
+    assert data["produto"]["sku"] == "CAMISA-AZUL-M"
+    mock_upload.assert_called_once()
+    mock_criar.assert_called_once()
+
+
+@patch("rotas.adm.criar_produto")
+@patch("rotas.adm.cloudinary.uploader.upload")
+def test_cadastro_produto_campos_faltando(mock_upload, mock_criar, client):
+    imagem = (BytesIO(b"conteudo"), "foto.jpg")
+
+    response = client.post("/produto", data={
+        # sem titulo, descricao, cor, tamanho
+        "valor": "99.90",
+        "quantidade": "10",
+        "desconto": "0",
+        "image": imagem
+    }, content_type="multipart/form-data")
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == "Campos obrigatórios faltando"
+    mock_upload.assert_not_called()
+    mock_criar.assert_not_called()
+
+@patch("rotas.adm.criar_produto")
+@patch("rotas.adm.cloudinary.uploader.upload")
+def test_cadastro_produto_numericos_invalidos(mock_upload, mock_criar, client):
+    imagem = (BytesIO(b"conteudo"), "foto.jpg")
+
+    response = client.post("/produto", data={
+        "titulo": "Camisa",
+        "descricao": "Camisa bonita",
+        "cor": "Azul",
+        "tamanho": "M",
+        "valor": "abc",        
+        "quantidade": "dez",   
+        "desconto": "0",
+        "image": imagem
+    }, content_type="multipart/form-data")
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == "Dados numéricos inválidos"
+    mock_upload.assert_not_called()
+    mock_criar.assert_not_called()
+
+
+@patch("rotas.adm.criar_produto")
+@patch("rotas.adm.cloudinary.uploader.upload")
+def test_cadastro_produto_preco_invalido(mock_upload, mock_criar, client):
+    imagem = (BytesIO(b"conteudo"), "foto.jpg")
+
+    response = client.post("/produto", data={
+        "titulo": "Camisa",
+        "descricao": "Camisa bonita",
+        "cor": "Azul",
+        "tamanho": "M",
+        "valor": "-10",   # negativo
+        "quantidade": "5",
+        "desconto": "0",
+        "image": imagem
+    }, content_type="multipart/form-data")
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == "Preço inválido"
+    mock_upload.assert_not_called()
+    mock_criar.assert_not_called()
 
 
 @patch("rotas.adm.get_db")
