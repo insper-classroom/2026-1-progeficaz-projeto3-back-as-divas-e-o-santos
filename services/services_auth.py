@@ -20,7 +20,10 @@ def valida_informacoes(db,nome,email,pwd):
     if len(pwd) < 8:
         return None, "Senha muito curta. Use pelo menos 8 caracteres."
 
+    print(f"[DEBUG] Verificando email: {email}")
     row =  db.users.find_one({"email": email})
+    print(f"[DEBUG] Email encontrado no banco: {row is not None}")
+    
     if row:
         return None, 'Usuário já cadastrado.'
     
@@ -35,8 +38,14 @@ def valida_informacoes(db,nome,email,pwd):
         "email_codigo": codigo,
         "codigo_expira": expira
     }
-    result = db.users.insert_one(user_doc)
-
+    
+    print(f"[DEBUG] Salvando usuário: {email}")
+    try:
+        result = db.users.insert_one(user_doc)
+        print(f"[DEBUG] Usuário salvo com ID: {result.inserted_id}")
+    except Exception as e:
+        print(f"[DEBUG] ERRO ao salvar usuário: {e}")
+        return None, "Erro ao salvar usuário"
 
     try:
         from tasks.tasks import enviar_email

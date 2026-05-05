@@ -13,6 +13,7 @@ from rotas.adm import adm_bp
 import cloudinary
 import cloudinary.uploader
 import unittest
+from flask_cors import CORS
 
 
 
@@ -28,6 +29,7 @@ cloudinary.config(
 
 def criar_app():
     app = Flask(__name__, instance_relative_config=True)
+    CORS(app, origins=["http://loja-insper-frontend.s3-website.us-east-2.amazonaws.com"])
 
 
     app.config.from_mapping(

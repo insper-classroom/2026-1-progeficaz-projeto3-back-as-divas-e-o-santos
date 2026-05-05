@@ -35,6 +35,9 @@ def login():
 @auth_bp.route('/registro', methods=['GET', 'POST'])
 def registro():
     db = get_db()
+    
+    if db is None:
+        return {"erro": "Erro ao conectar ao banco de dados."}, 500
 
     if request.method == "POST":
         nome = request.form.get('nome', '').strip()
